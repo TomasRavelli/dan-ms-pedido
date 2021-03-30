@@ -44,5 +44,4 @@ public class DetallePedido {
 		this.precio = precio;
 	}
 	
-	
 }

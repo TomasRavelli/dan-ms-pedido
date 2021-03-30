@@ -21,6 +21,4 @@ public class Obra {
 		this.id = id;
 	}
 	
-	
-
 }
