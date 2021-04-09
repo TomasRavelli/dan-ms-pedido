@@ -160,7 +160,7 @@ public class PedidoRest {
 			}
 			
 			return ResponseEntity.notFound().build();
-		}	
+		}
 		else {
 			return ResponseEntity.notFound().build();
 		}
@@ -228,37 +228,62 @@ public class PedidoRest {
 	})
 	
 	@GetMapping()
-	public ResponseEntity<List<Pedido>> getPedidoByIdClienteOrCuitCliente(@RequestParam(required = false) Integer idCliente, @RequestParam(required=false) Integer cuitCliente){
-				
-		List<Pedido> pedidos = new ArrayList<>();
-		WebClient client = WebClient.create("localhost:8080/api/obra");
-		
-		if(idCliente.equals(null)&&cuitCliente.equals(null)) {
-			return ResponseEntity.badRequest().build();
-		}
-		else {
+	public ResponseEntity<List<Pedido>> getPedidoByIdClienteOrCuitCliente(@RequestParam(required = false, defaultValue = "0") Integer idCliente, @RequestParam(required = false, defaultValue = "") String cuitCliente){
 
-			if(!idCliente.equals(null)) {	
-					
-				Flux<ObraDTO> result = client.get()
-				.uri("/buscarPorParametros?idCliente="+idCliente.toString())
-				.accept(MediaType.APPLICATION_JSON)
-				.retrieve()
-				.bodyToFlux(ObraDTO.class);
-				result.subscribe(obra -> filtrarObra(obra,pedidos));
-			}
-			
-			if(!cuitCliente.equals(null)) {
-							
-				Flux<ObraDTO> result = client.get()
-			    .uri("/buscarPorCuit?cuitCliente="+cuitCliente.toString())
-				.accept(MediaType.APPLICATION_JSON)
-				.retrieve()
-				.bodyToFlux(ObraDTO.class);
-				result.subscribe(obra -> filtrarObra(obra,pedidos));
-			}
-			
+		if(idCliente == 0 && cuitCliente.isEmpty()){
+			//No recibí ningún parámetro, retorno todos los pedidos.
+			return ResponseEntity.ok(listaPedidos);
 		}
+
+		List<Pedido> pedidos = new ArrayList<>();
+		WebClient client = WebClient.create("http://localhost:8080/api/obra");
+
+		String queryString = "";
+
+		if(idCliente > 0){
+			queryString += "?idCliente="+idCliente;
+		}
+
+		if(!cuitCliente.isEmpty()){
+			if(queryString.isEmpty()){
+				queryString += "?";
+			}else{
+				queryString = "&";
+			}
+			queryString += "cuitCliente="+cuitCliente;
+		}
+
+		Flux<ObraDTO> result = client.get()
+				.uri(queryString)
+				.accept(MediaType.APPLICATION_JSON)
+				.retrieve()
+				.bodyToFlux(ObraDTO.class);
+		result.subscribe(obra -> filtrarObra(obra,pedidos));
+
+//		if(idCliente.equals(null)&&cuitCliente.equals(null)) {
+//			return ResponseEntity.badRequest().build();
+//		}
+
+//			if(!idCliente.equals(null)) {
+//
+//				Flux<ObraDTO> result = client.get()
+//				.uri("/buscarPorParametros?idCliente="+idCliente.toString())
+//				.accept(MediaType.APPLICATION_JSON)
+//				.retrieve()
+//				.bodyToFlux(ObraDTO.class);
+//				result.subscribe(obra -> filtrarObra(obra,pedidos));
+//			}
+//
+//			if(!cuitCliente.equals(null)) {
+//
+//				Flux<ObraDTO> result = client.get()
+//			    .uri("/buscarPorCuit?cuitCliente="+cuitCliente.toString())
+//				.accept(MediaType.APPLICATION_JSON)
+//				.retrieve()
+//				.bodyToFlux(ObraDTO.class);
+//				result.subscribe(obra -> filtrarObra(obra,pedidos));
+//			}
+//
 		
 		System.out.println(pedidos.size());
 		return ResponseEntity.ok(pedidos);
