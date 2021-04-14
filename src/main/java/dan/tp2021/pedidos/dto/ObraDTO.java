@@ -4,6 +4,13 @@ public class ObraDTO {
 	
 	private Integer id;
 
+	public ObraDTO() {
+	}
+
+	public ObraDTO(Integer id) {
+		this.id = id;
+	}
+
 	public Integer getId() {
 		return id;
 	}

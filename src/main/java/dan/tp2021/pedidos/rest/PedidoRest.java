@@ -1,6 +1,6 @@
 package dan.tp2021.pedidos.rest;
 
-import java.net.http.HttpHeaders;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -22,18 +22,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.fasterxml.jackson.annotation.JacksonInject.Value;
-
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
-import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.dto.ObraDTO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/pedido")
@@ -253,12 +248,37 @@ public class PedidoRest {
 			queryString += "cuitCliente="+cuitCliente;
 		}
 
-		Flux<ObraDTO> result = client.get()
-				.uri(queryString)
-				.accept(MediaType.APPLICATION_JSON)
-				.retrieve()
-				.bodyToFlux(ObraDTO.class);
-		result.subscribe(obra -> filtrarObra(obra,pedidos));
+		ResponseEntity<List<ObraDTO>> response = client.get()
+												 .uri(queryString)
+												 .accept(MediaType.APPLICATION_JSON)
+												 .retrieve()
+												 .toEntityList(ObraDTO.class)
+												 .block();
+		if(response != null && response.getStatusCode() == HttpStatus.OK){
+			System.out.println("Respuesta exitosa de la api de obras: \n" + response);
+			List<ObraDTO> obraDTOList = response.getBody();
+			List<Pedido> pedidosFiltrados = listaPedidos.stream()
+					.filter(pedido -> {
+						for(ObraDTO obra: obraDTOList) {
+							if (pedido.getObra().getId().equals(obra.getId())) return true;
+						}
+						return false;
+					})
+					.collect(Collectors.toList());
+
+			return ResponseEntity.ok(pedidosFiltrados);
+		}
+
+		System.out.println("Hubo un error en el llamado a la api de obras.\n" + response);
+
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
+//		Flux<ObraDTO> result = client.get()
+//				.uri(queryString)
+//				.accept(MediaType.APPLICATION_JSON)
+//				.retrieve()
+//				.bodyToFlux(ObraDTO.class);
+//		result.subscribe(obra -> filtrarObra(obra,pedidos));
 
 //		if(idCliente.equals(null)&&cuitCliente.equals(null)) {
 //			return ResponseEntity.badRequest().build();
@@ -285,8 +305,8 @@ public class PedidoRest {
 //			}
 //
 		
-		System.out.println(pedidos.size());
-		return ResponseEntity.ok(pedidos);
+//		System.out.println(pedidos.size());
+//		return ResponseEntity.ok(pedidos);
 		
 	}
 	
