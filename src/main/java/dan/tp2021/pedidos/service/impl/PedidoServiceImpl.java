@@ -15,7 +15,8 @@ import dan.tp2021.pedidos.service.PedidoService;
 @Service
 public class PedidoServiceImpl implements PedidoService {
 
-	@Autowired
+	//Luego Cambiar. Porque no anda aun.
+	@Autowired(required = false)
 	PedidoRepository repo;
 	
 	@Autowired

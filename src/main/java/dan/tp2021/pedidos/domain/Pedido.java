@@ -40,6 +40,6 @@ public class Pedido {
 	public void setEstado(EstadoPedido estado) {
 		this.estado = estado;
 	}
-	
+
 	
 }
