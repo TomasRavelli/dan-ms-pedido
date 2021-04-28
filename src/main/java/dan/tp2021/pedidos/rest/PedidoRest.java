@@ -8,6 +8,7 @@ import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.services.PedidoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -38,6 +40,8 @@ public class PedidoRest {
 	private static Integer ID_GEN=1;
 	private static List<Pedido> listaPedidos = new ArrayList<>();
 	
+	@Autowired
+	PedidoService pedidoServiceImpl;
 	
 	@ApiOperation(value = "Crea un nuevo Pedido")
 	    @ApiResponses(value = {
@@ -49,9 +53,23 @@ public class PedidoRest {
 	public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido){
 
     	System.out.println(" crear pedido "+nuevoPedido);
-        nuevoPedido.setId(ID_GEN++);
-        listaPedidos.add(nuevoPedido);
-        return ResponseEntity.ok(nuevoPedido);
+//        nuevoPedido.setId(ID_GEN++);
+//        listaPedidos.add(nuevoPedido);
+    	if (nuevoPedido != null &&  nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null && nuevoPedido.getDetalle().size()>0) {
+    		
+    		for(DetallePedido d: nuevoPedido.getDetalle()) {
+    			if(d.getCantidad() == null || d.getProducto() == null) {
+    				return ResponseEntity.badRequest().body(nuevoPedido);
+    			}
+    		}
+    		try {
+				return pedidoServiceImpl.savePedido(nuevoPedido);
+			} catch (Exception e) {
+				
+				e.getMessage();
+			}
+    	}
+    	return ResponseEntity.badRequest().body(nuevoPedido);
     
 	}
 	
