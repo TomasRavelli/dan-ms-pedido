@@ -18,6 +18,9 @@ public class PedidoServiceImpl implements PedidoService{
 		
 	@Autowired
 	PedidoRepositoryInMemory pedidoRepositoryInMemory;
+	
+	@Autowired
+	BancoService bancoServiceImpl;
 
 	@Override
 	public ResponseEntity<Pedido> savePedido(Pedido p) throws Exception {
@@ -50,7 +53,7 @@ public class PedidoServiceImpl implements PedidoService{
 			}
 			
 			boolean esDeudor = sumaCostosProductos > clienteDTO.getSaldoActual(), superaDescubierto = sumaCostosProductos>clienteDTO.getMaxCuentaOnline();
-			boolean condicionC = superaDescubierto && clienteDTO.getHabilitadoOnline(); //TODO ver como tratamos el getHabilitadoOnline
+			boolean condicionC = superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); //TODO ver como tratamos el getHabilitadoOnline
 			
 			if (!esDeudor || condicionC) {
 				
