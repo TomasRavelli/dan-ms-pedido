@@ -10,10 +10,10 @@ import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.repository.PedidoRepository;
 import dan.tp2021.pedidos.service.ClienteService;
 import dan.tp2021.pedidos.service.MaterialService;
-import dan.tp2021.pedidos.service.PedidoService;
+import dan.tp2021.pedidos.service.PedidoServiceProfe;
 
 @Service
-public class PedidoServiceImpl implements PedidoService {
+public class PedidoServiceImplProfe implements PedidoServiceProfe {
 
 	//Luego Cambiar. Porque no anda aun.
 	@Autowired(required = false)
