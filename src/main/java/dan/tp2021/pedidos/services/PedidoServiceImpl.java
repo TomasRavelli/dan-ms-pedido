@@ -29,18 +29,12 @@ public class PedidoServiceImpl implements PedidoService{
 		
 		EstadoPedido estadoPedido = new EstadoPedido();
 		
-		WebClient client = WebClient.create("http://localhost:8080/api/obra/"+p.getObra().getId());
+		ResponseEntity<ClienteDTO> clienteBuscadoByObra = buscarClienteEnServicioUsuario(p);
 		
-		ResponseEntity<ObraDTO> response = client.get()
-				 .accept(MediaType.APPLICATION_JSON)
-				 .retrieve()
-				 .toEntity(ObraDTO.class)
-				 .block();
+		if(clienteBuscadoByObra.getStatusCode().equals(HttpStatus.OK)) {
 		
-		if(response.getStatusCode().equals(HttpStatus.OK)){
-			
-			ClienteDTO clienteDTO = response.getBody().getClienteDTO();
-	
+			ClienteDTO clienteDTO = clienteBuscadoByObra.getBody();
+		
 			double sumaCostosProductos = 0;
 			boolean stockDisponible = true;
 			
@@ -90,11 +84,42 @@ public class PedidoServiceImpl implements PedidoService{
 			}
 		
 		}
-		else {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		}
+		
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		
 	}
 	
+	private ResponseEntity<ClienteDTO> buscarClienteEnServicioUsuario(Pedido p){
+		
+		//Buscar en el servicio Usuario la obra, para encontrar a que cliente pertenece.
+		WebClient client = WebClient.create("http://localhost:8080/api/obra/"+p.getObra().getId());
+		
+		ResponseEntity<ObraDTO> response = client.get()
+				 .accept(MediaType.APPLICATION_JSON)
+				 .retrieve()
+				 .toEntity(ObraDTO.class)
+				 .block();
+		
+		if(response.getStatusCode().equals(HttpStatus.OK)){
+			
+			//TODO ver si se puede arreglar para que no entre dos veces a la API de cliente. Esto sucede porque el JSON no tiene un cliente asociado.
+			
+			client = WebClient.create("http://localhost:8080/api/cliente/"+response.getBody().getIdCliente()); //Buscar los datos del cliente en el servicio de usuarios.
+			
+			
+			ResponseEntity<ClienteDTO> clienteResponse = client.get()
+					 .accept(MediaType.APPLICATION_JSON)
+					 .retrieve()
+					 .toEntity(ClienteDTO.class)
+					 .block();
+			
+			if(clienteResponse.getStatusCode().equals(HttpStatus.OK)) {
+				return clienteResponse;
+			}
+		}
+		
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			
+	}
 
 }
