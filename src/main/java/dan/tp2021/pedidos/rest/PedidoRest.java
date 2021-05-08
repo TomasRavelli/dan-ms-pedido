@@ -8,6 +8,7 @@ import java.util.OptionalInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.services.PedidoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -38,6 +40,8 @@ public class PedidoRest {
 	private static Integer ID_GEN=1;
 	private static List<Pedido> listaPedidos = new ArrayList<>();
 	
+	@Autowired
+	PedidoService pedidoServiceImpl;
 	
 	@ApiOperation(value = "Crea un nuevo Pedido")
 	    @ApiResponses(value = {
@@ -48,10 +52,27 @@ public class PedidoRest {
 	@PostMapping
 	public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido){
 
-    	System.out.println(" crear pedido "+nuevoPedido);
-        nuevoPedido.setId(ID_GEN++);
-        listaPedidos.add(nuevoPedido);
-        return ResponseEntity.ok(nuevoPedido);
+//    	System.out.println(" crear pedido "+nuevoPedido);
+//        nuevoPedido.setId(ID_GEN++);
+//        listaPedidos.add(nuevoPedido);
+    	if (nuevoPedido != null &&  nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null && nuevoPedido.getDetalle().size()>0) {
+    		
+    		for(DetallePedido d: nuevoPedido.getDetalle()) {
+    			if(d.getCantidad() == null || d.getProducto() == null) {
+    				System.out.println("entra");
+    				return ResponseEntity.badRequest().body(nuevoPedido);
+    			}
+    		}
+    		try {
+    	        nuevoPedido.setId(ID_GEN++);
+    	        listaPedidos.add(nuevoPedido);
+				return pedidoServiceImpl.savePedido(nuevoPedido);
+			} catch (Exception e) {
+				
+				System.out.println(e.getMessage());
+			}
+    	}
+    	return ResponseEntity.badRequest().body(nuevoPedido);
     
 	}
 	
@@ -72,7 +93,9 @@ public class PedidoRest {
 		if(indexOpt.isPresent()) {
 			Pedido p = listaPedidos.get(indexOpt.getAsInt());
 			p.getDetalle().add(detalle);
+			
 			listaPedidos.set(indexOpt.getAsInt(), p);
+			
 			return ResponseEntity.ok(p);
 		}	
 		else {
@@ -243,7 +266,7 @@ public class PedidoRest {
 			if(queryString.isEmpty()){
 				queryString += "?";
 			}else{
-				queryString = "&";
+				queryString += "&";
 			}
 			queryString += "cuitCliente="+cuitCliente;
 		}
@@ -326,7 +349,7 @@ public class PedidoRest {
 			@ApiResponse(code=404, message="No existe detalle de pedido o pedido"),
 	})
 	
-	@GetMapping("/api/pedido/{idPedido}/detalle/{id}")
+	@GetMapping("/{idPedido}/detalle/{id}")
 	public ResponseEntity<DetallePedido> getDetallePedidoById(@PathVariable Integer idPedido, @PathVariable Integer id){
 		DetallePedido detalleResultado;
 		
@@ -334,7 +357,7 @@ public class PedidoRest {
 				.stream()
 				.filter(p -> p.getId().equals(idPedido))
 				.findFirst();
-		
+		System.out.println(pedido.get().getDetalle().get(0).getId());
 		if(pedido.isPresent()) {
 			Optional<DetallePedido> detallePed = pedido.get().getDetalle()
 					.stream()

@@ -24,13 +24,13 @@ import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.repository.PedidoRepository;
 import dan.tp2021.pedidos.service.ClienteService;
 import dan.tp2021.pedidos.service.MaterialService;
-import dan.tp2021.pedidos.service.PedidoService;
+import dan.tp2021.pedidos.service.PedidoServiceProfe;
 
 @SpringBootTest
 class PedidoServiceImplUT {
 	
 	@Autowired
-	PedidoService pedidoService;
+	PedidoServiceProfe pedidoService;
 	
 	@MockBean
 	PedidoRepository pedidoRepo;
