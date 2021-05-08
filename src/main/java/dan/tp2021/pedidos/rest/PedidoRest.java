@@ -64,9 +64,12 @@ public class PedidoRest {
     			}
     		}
     		try {
-    	        nuevoPedido.setId(ID_GEN++);
-    	        listaPedidos.add(nuevoPedido);
-				return pedidoServiceImpl.savePedido(nuevoPedido);
+    			ResponseEntity<Pedido> rep = pedidoServiceImpl.savePedido(nuevoPedido);
+    			if(rep.getStatusCode().is2xxSuccessful()){
+					nuevoPedido.setId(ID_GEN++);
+					listaPedidos.add(nuevoPedido);
+					return rep;
+				}
 			} catch (Exception e) {
 				
 				System.out.println(e.getMessage());
