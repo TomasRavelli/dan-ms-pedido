@@ -1,6 +1,5 @@
 package dan.tp2021.pedidos.services;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,71 +24,57 @@ public class PedidoServiceImpl implements PedidoService{
 	BancoService bancoServiceImpl;
 
 	@Override
-	public ResponseEntity<Pedido> savePedido(Pedido p) throws Exception {
+	public Pedido savePedido(Pedido p) throws ClienteDeudorException, ClienteNoEncontradoException {
 		
 		EstadoPedido estadoPedido = new EstadoPedido();
-		
-		ResponseEntity<ClienteDTO> clienteBuscadoByObra = buscarClienteEnServicioUsuario(p);
-		
-		if(clienteBuscadoByObra.getStatusCode().equals(HttpStatus.OK)) {
-		
-			ClienteDTO clienteDTO = clienteBuscadoByObra.getBody();
-		
-			double sumaCostosProductos = 0;
-			boolean stockDisponible = true;
-			
-			for(DetallePedido dp: p.getDetalle()) {
-				
-				sumaCostosProductos += dp.getPrecio();
-				
-				if(dp.getProducto().getStockActual() <= 0 && stockDisponible) {
-				
-					stockDisponible = false;
-				}
+
+		//Por que ese metodo no retorna directamente un cliente? (o un clienteDTO)
+		ClienteDTO clienteDTO = buscarClienteEnServicioUsuario(p);
+
+		//Si llego a esta línea es porque tengo un cliete, porque sino se lanza una excepción que corta todo.
+
+		double sumaCostosProductos = 0;
+		boolean stockDisponible = true;
+
+		for (DetallePedido dp : p.getDetalle()) {
+
+			sumaCostosProductos += dp.getPrecio();
+
+			if (dp.getProducto().getStockActual() <= 0 && stockDisponible) {
+
+				stockDisponible = false;
 			}
-			
-			boolean esDeudor = sumaCostosProductos > clienteDTO.getSaldoActual(), superaDescubierto = sumaCostosProductos>clienteDTO.getMaxCuentaOnline();
-			boolean condicionC = superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); //TODO ver como tratamos el getHabilitadoOnline
-			
-			if (!esDeudor || condicionC) {
-				
-				if(stockDisponible) {
-					
-					estadoPedido.setEstado("ACEPTADO");
-					
-					try{	
-						p.setEstado(estadoPedido);
-						return ResponseEntity.ok(pedidoRepositoryInMemory.save(p));
-					}catch (Exception e) {
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-					}
-			
-				}
-				else {
-					
-					estadoPedido.setEstado("PENDIENTE");
-					
-					try{	
-						p.setEstado(estadoPedido);
-						return ResponseEntity.ok(pedidoRepositoryInMemory.save(p));
-					}catch (Exception e) {
-						return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-					}
-			
-				}
-			}
-		
-			else {
-				throw new Exception("Error. El cliente no cumple con las condiciones para adquirir el pedido");
-			}
-		
 		}
-		
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-		
+
+		boolean esDeudor = sumaCostosProductos > clienteDTO.getSaldoActual(), superaDescubierto = sumaCostosProductos > clienteDTO.getMaxCuentaOnline();
+		boolean condicionC = superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); //TODO ver como tratamos el getHabilitadoOnline
+
+		if (!esDeudor || condicionC) {
+
+			if (stockDisponible) {
+
+				estadoPedido.setEstado("ACEPTADO");
+
+				p.setEstado(estadoPedido);
+
+			} else {
+
+				estadoPedido.setEstado("PENDIENTE");
+
+				p.setEstado(estadoPedido);
+
+			}
+			//Este métod podría tirar una excepción en otra implementación del repositori, si queremos.
+			//Pero creo que no haría falta capturarla acá, la podemos capturar  en el Controller y decidir qué hacer ahí.
+			return pedidoRepositoryInMemory.save(p); //El InMemoryRepository no lanza ninguna exepción.
+		} else {
+			//Lanzo una excepción que me da información sobre el error.
+			throw new ClienteDeudorException("Error. El cliente no cumple con las condiciones para adquirir el pedido");
+		}
+
 	}
 	
-	private ResponseEntity<ClienteDTO> buscarClienteEnServicioUsuario(Pedido p){
+	private ClienteDTO buscarClienteEnServicioUsuario(Pedido p) throws ClienteNoEncontradoException {
 		
 		//Buscar en el servicio Usuario la obra, para encontrar a que cliente pertenece.
 		WebClient client = WebClient.create("http://localhost:8080/api/obra/"+p.getObra().getId());
@@ -114,11 +99,11 @@ public class PedidoServiceImpl implements PedidoService{
 					 .block();
 			
 			if(clienteResponse.getStatusCode().equals(HttpStatus.OK)) {
-				return clienteResponse;
+				return clienteResponse.getBody();
 			}
 		}
-		
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+
+		throw new ClienteNoEncontradoException("Error. No se puedo encontrar al cliente.");
 			
 	}
 

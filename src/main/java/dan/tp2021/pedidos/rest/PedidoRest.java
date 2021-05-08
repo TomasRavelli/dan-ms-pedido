@@ -1,10 +1,12 @@
 package dan.tp2021.pedidos.rest;
 
 
+import java.sql.SQLSyntaxErrorException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.OptionalInt;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -58,6 +60,7 @@ public class PedidoRest {
     	if (nuevoPedido != null &&  nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null && nuevoPedido.getDetalle().size()>0) {
     		
     		for(DetallePedido d: nuevoPedido.getDetalle()) {
+    			//Que pasa si la cantidad es 0?
     			if(d.getCantidad() == null || d.getProducto() == null) {
     				System.out.println("entra");
     				return ResponseEntity.badRequest().body(nuevoPedido);
@@ -66,13 +69,32 @@ public class PedidoRest {
     		try {
     	        nuevoPedido.setId(ID_GEN++);
     	        listaPedidos.add(nuevoPedido);
-				return pedidoServiceImpl.savePedido(nuevoPedido);
-			} catch (Exception e) {
-				
+				Pedido p = pedidoServiceImpl.savePedido(nuevoPedido);
+				//Si llego hasta acá quiere decir que no hubo errores.
+				return ResponseEntity.ok(p);
+			} catch (PedidoService.ClienteDeudorException e) {
+    			System.out.println("El cliente es deudor");
 				System.out.println(e.getMessage());
+				e.printStackTrace();
+				//Bad request, porque los parámetros que nos mandaron están mal.
+				return ResponseEntity.badRequest().build();
+			} catch (PedidoService.ClienteNoEncontradoException e) {
+    			System.out.println("No se encontró al cliente en el microservicio de clientes");
+    			System.out.println(e.getMessage());
+				e.printStackTrace();
+				//No estoy seguro de esta. Puede ser un not found porque es una entidad que no se entontró, pero también podría ser otra cosa.
+				//Como esto es una llamada a otra API podría ser un error de conección por ejemplo, y eso sería un 50X, porque no tiene nada que ver con los datos que nos manda el cliente
+				//Pero también podría ser que nos mandaron un cliente que no existe y en ese caso sería un 404,
+				// capaz que esto se podría saber en la función que lanza esta excepción y lanzar distintias excepciones en cada caso.
+				return ResponseEntity.notFound().build();
+			} catch (Exception e){
+				System.out.println("Error desconocido: "+e.getMessage());
+				e.printStackTrace();
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			}
     	}
-    	return ResponseEntity.badRequest().body(nuevoPedido);
+    	//Me parece que no tiene mucho sentido devolver el pedido acá, si hubo un error este pedido no se creó, no es válido.
+    	return ResponseEntity.badRequest().build();
     
 	}
 	
