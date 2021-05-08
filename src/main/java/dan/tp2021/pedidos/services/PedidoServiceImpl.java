@@ -1,7 +1,7 @@
 package dan.tp2021.pedidos.services;
 
+	import javax.management.RuntimeErrorException;
 
-import dan.tp2021.pedidos.service.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,23 +17,23 @@ import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
 
 @Service
-public class PedidoServiceImpl implements PedidoService{
-		
+public class PedidoServiceImpl implements PedidoService {
+
 	@Autowired
 	PedidoRepositoryInMemory pedidoRepositoryInMemory;
 	
 	@Autowired
+	ClienteService clienteServiceImpl;
+	
+	@Autowired
 	BancoService bancoServiceImpl;
 
-	@Autowired
-	MaterialService materialService;
-
 	@Override
-	public ResponseEntity<Pedido> savePedido(Pedido p) throws Exception {
+	public ResponseEntity<Pedido> savePedido(Pedido p) throws RuntimeException {
 
 		EstadoPedido estadoPedido = new EstadoPedido();
 		
-		ResponseEntity<ClienteDTO> clienteBuscadoByObra = buscarClienteEnServicioUsuario(p);
+		ResponseEntity<ClienteDTO> clienteBuscadoByObra = clienteServiceImpl.getClienteByObra(p);
 
 		if(clienteBuscadoByObra.getStatusCode().equals(HttpStatus.OK)) {
 		
@@ -45,19 +45,22 @@ public class PedidoServiceImpl implements PedidoService{
 			for(DetallePedido dp: p.getDetalle()) {
 				
 				sumaCostosProductos += dp.getPrecio();
-				//Aca se deberia usar el materialService creo
-				if(materialService.stockDisponible(dp.getProducto()) <= 0 && stockDisponible){
+				//Aca se deberia usar el materialService creo. COMENTARIO DE PERU.
+				//Eso estaba implementado por el profe, si quieren lo hacemos como el. COMENTARIO TOMAS.
+//				if(materialService.stockDisponible(dp.getProducto()) <= 0 && stockDisponible){
+//					stockDisponible = false;
+//				}
+				if(dp.getProducto().getStockActual() <= 0 && stockDisponible) {
+					
 					stockDisponible = false;
-				}
-				/*if(dp.getProducto().getStockActual() <= 0 && stockDisponible) {
 				
-					stockDisponible = false;
-				}*/
+				}
+			
 			}
 			
 			boolean esDeudor = sumaCostosProductos > clienteDTO.getSaldoActual(), superaDescubierto = sumaCostosProductos>clienteDTO.getMaxCuentaOnline();
-			boolean condicionC = superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); //TODO ver como tratamos el getHabilitadoOnline
-			
+			boolean condicionC = !superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); //TODO ver como tratamos el getHabilitadoOnline
+					
 			if (!esDeudor || condicionC) {
 				
 				if(stockDisponible) {
@@ -87,7 +90,7 @@ public class PedidoServiceImpl implements PedidoService{
 			}
 		
 			else {
-				throw new Exception("Error. El cliente no cumple con las condiciones para adquirir el pedido");
+				throw new RuntimeException("Error. El cliente no cumple con las condiciones para adquirir el pedido");
 			}
 		
 		}
@@ -95,38 +98,4 @@ public class PedidoServiceImpl implements PedidoService{
 		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		
 	}
-	
-	private ResponseEntity<ClienteDTO> buscarClienteEnServicioUsuario(Pedido p){
-		
-		//Buscar en el servicio Usuario la obra, para encontrar a que cliente pertenece.
-		WebClient client = WebClient.create("http://localhost:8080/api/obra/"+p.getObra().getId());
-		
-		ResponseEntity<ObraDTO> response = client.get()
-				 .accept(MediaType.APPLICATION_JSON)
-				 .retrieve()
-				 .toEntity(ObraDTO.class)
-				 .block();
-
-		if(response.getStatusCode().equals(HttpStatus.OK)){
-			
-			//TODO ver si se puede arreglar para que no entre dos veces a la API de cliente. Esto sucede porque el JSON no tiene un cliente asociado.
-			
-			client = WebClient.create("http://localhost:8080/api/cliente/"+response.getBody().getIdCliente()); //Buscar los datos del cliente en el servicio de usuarios.
-			
-			
-			ResponseEntity<ClienteDTO> clienteResponse = client.get()
-					 .accept(MediaType.APPLICATION_JSON)
-					 .retrieve()
-					 .toEntity(ClienteDTO.class)
-					 .block();
-			
-			if(clienteResponse.getStatusCode().equals(HttpStatus.OK)) {
-				return clienteResponse;
-			}
-		}
-		
-		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-			
-	}
-
 }

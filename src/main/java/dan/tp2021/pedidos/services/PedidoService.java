@@ -8,5 +8,5 @@ import dan.tp2021.pedidos.domain.Pedido;
 
 public interface PedidoService {
 
-	public ResponseEntity<Pedido> savePedido(Pedido p) throws Exception;
+	public ResponseEntity<Pedido> savePedido(Pedido p) throws RuntimeException;
 }
