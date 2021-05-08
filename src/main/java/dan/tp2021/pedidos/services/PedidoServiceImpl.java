@@ -1,6 +1,7 @@
 package dan.tp2021.pedidos.services;
 
 
+import dan.tp2021.pedidos.service.MaterialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -24,13 +25,16 @@ public class PedidoServiceImpl implements PedidoService{
 	@Autowired
 	BancoService bancoServiceImpl;
 
+	@Autowired
+	MaterialService materialService;
+
 	@Override
 	public ResponseEntity<Pedido> savePedido(Pedido p) throws Exception {
-		
+
 		EstadoPedido estadoPedido = new EstadoPedido();
 		
 		ResponseEntity<ClienteDTO> clienteBuscadoByObra = buscarClienteEnServicioUsuario(p);
-		
+
 		if(clienteBuscadoByObra.getStatusCode().equals(HttpStatus.OK)) {
 		
 			ClienteDTO clienteDTO = clienteBuscadoByObra.getBody();
@@ -41,11 +45,14 @@ public class PedidoServiceImpl implements PedidoService{
 			for(DetallePedido dp: p.getDetalle()) {
 				
 				sumaCostosProductos += dp.getPrecio();
-				
-				if(dp.getProducto().getStockActual() <= 0 && stockDisponible) {
-				
+				//Aca se deberia usar el materialService creo
+				if(materialService.stockDisponible(dp.getProducto()) <= 0 && stockDisponible){
 					stockDisponible = false;
 				}
+				/*if(dp.getProducto().getStockActual() <= 0 && stockDisponible) {
+				
+					stockDisponible = false;
+				}*/
 			}
 			
 			boolean esDeudor = sumaCostosProductos > clienteDTO.getSaldoActual(), superaDescubierto = sumaCostosProductos>clienteDTO.getMaxCuentaOnline();
@@ -99,7 +106,7 @@ public class PedidoServiceImpl implements PedidoService{
 				 .retrieve()
 				 .toEntity(ObraDTO.class)
 				 .block();
-		
+
 		if(response.getStatusCode().equals(HttpStatus.OK)){
 			
 			//TODO ver si se puede arreglar para que no entre dos veces a la API de cliente. Esto sucede porque el JSON no tiene un cliente asociado.

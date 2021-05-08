@@ -68,6 +68,7 @@ public class PedidoRest {
     			if(rep.getStatusCode().is2xxSuccessful()){
 					nuevoPedido.setId(ID_GEN++);
 					listaPedidos.add(nuevoPedido);
+					System.out.println("guarda bien");
 					return rep;
 				}
 			} catch (Exception e) {

@@ -72,13 +72,47 @@ class PedidoServiceImplUT {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 
 		Pedido pedidoResultado = pedidoService.crearPedido(unPedido);
-		assertThat(pedidoResultado.getEstado().getId().equals(1));
+
+		assertEquals("ACEPTADO",pedidoResultado.getEstado().getEstado());
 	}
 
 	@Test
-	@Disabled("pendiente")
 	void testCrearPedidoSinStockSinDeuda() {
-		fail("Not yet implemented");
+
+		// stock de 8, para uno no le alcanza
+		when(materialService.stockDisponible(any(Producto.class))).thenReturn(8);
+		// el cliente no tiene deuda
+		when(clienteService.deudaCliente(any(Obra.class))).thenReturn(0.0);
+		// el saldo negativo maximo es 10000
+		when(clienteService.maximoSaldoNegativo(any(Obra.class))).thenReturn(10000.0);
+		// el saldo negativo maximo es 10000
+		when(clienteService.situacionCrediticiaBCRA(any(Obra.class))).thenReturn(1);
+		// retorno el pedido
+		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
+
+		Pedido pedidoResultado = pedidoService.crearPedido(unPedido);
+
+		assertEquals("PENDIENTE",pedidoResultado.getEstado().getEstado());
+	}
+
+	@Test
+	@Disabled("este seria del banco, por ahora esta copiado de arriba nomas")
+	void testCrearPedidoConStockConDeudaPerfilBueno() {
+
+		// stock de 8, para uno no le alcanza
+		when(materialService.stockDisponible(any(Producto.class))).thenReturn(50);
+		// el cliente no tiene deuda
+		when(clienteService.deudaCliente(any(Obra.class))).thenReturn(0.0);
+		// el saldo negativo maximo es 10000
+		when(clienteService.maximoSaldoNegativo(any(Obra.class))).thenReturn(10000.0);
+		// el saldo negativo maximo es 10000
+		when(clienteService.situacionCrediticiaBCRA(any(Obra.class))).thenReturn(1);
+		// retorno el pedido
+		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
+
+		Pedido pedidoResultado = pedidoService.crearPedido(unPedido);
+
+		assertEquals("PENDIENTE",pedidoResultado.getEstado().getEstado());
 	}
 
 	@Test
@@ -87,6 +121,7 @@ class PedidoServiceImplUT {
 		fail("Not yet implemented");
 	}
 
+	/*
 	public void hacerAlgo() {
 		System.out.println("hace algo");
         try {
@@ -96,7 +131,7 @@ class PedidoServiceImplUT {
 		}
 		throw new IndexOutOfBoundsException(-99);
 	}
-	
+	*/
 //	@Test
 //	@Disabled("pendiente")
 //	void testEsDeBajoRiesgo() {
@@ -130,7 +165,7 @@ class PedidoServiceImplUT {
 
 	
 
-
+/*
 	@AfterEach
 	void tearDown() throws Exception {
 	}
@@ -141,5 +176,5 @@ class PedidoServiceImplUT {
 	@AfterAll
 	static void tearDownAfterClass() throws Exception {
 	}
-
+*/
 }
