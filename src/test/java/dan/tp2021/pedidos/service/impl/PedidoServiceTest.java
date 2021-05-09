@@ -22,7 +22,7 @@ import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;
 
 @SpringBootTest
-class PedidoServiceImplUT {
+class PedidoServiceTest {
 	
 	@Autowired
 	PedidoService pedidoService;
