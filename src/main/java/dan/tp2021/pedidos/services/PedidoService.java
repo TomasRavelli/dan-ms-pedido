@@ -1,12 +1,11 @@
 package dan.tp2021.pedidos.services;
 
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
 import dan.tp2021.pedidos.domain.Pedido;
 
 
 public interface PedidoService {
 
-	public ResponseEntity<Pedido> savePedido(Pedido p) throws RuntimeException;
+	public static class ClienteNoHabilitadoException extends Exception { ClienteNoHabilitadoException(String message){super(message);}}
+
+	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteService.ClienteException;
 }
