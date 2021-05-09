@@ -80,8 +80,9 @@ class PedidoServiceImplUT {
 
 		} catch (Exception e) {
 
-			assertEquals("PASO TEST", "NO PASO TEST");
-			e.printStackTrace();
+			fail("Se lanzó un excepción en savePedido()", e);
+//			assertEquals("PASO TEST", "NO PASO TEST");
+//			e.printStackTrace();
 		}
 
 	}
@@ -107,8 +108,7 @@ class PedidoServiceImplUT {
 			pedidoResultado = pedidoService.savePedido(unPedido);
 			assertEquals("PENDIENTE",pedidoResultado.getEstado().getEstado());
 		} catch (Exception e) {
-			assertEquals("PASO TEST", "NO PASO TEST");
-			e.printStackTrace();
+			fail("Se lanzó una excepción en savePedido()", e);
 		}
 
 	}
@@ -128,7 +128,7 @@ class PedidoServiceImplUT {
 			Pedido resultado = pedidoService.savePedido(unPedido);
 			assertEquals("ACEPTADO",(resultado.getEstado().getEstado()));
 		} catch (Exception e) {
-			assertEquals("No debe fallar", "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+			fail("Se lanzó una excepción en savePedido()", e);
 		}
 
 	}
@@ -143,15 +143,19 @@ class PedidoServiceImplUT {
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(false);
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
-	
-		try {
-	
-			Pedido resultado = pedidoService.savePedido(unPedido);
-			assertEquals("DEBERIA ENTRAR AL CATCH", "DEBE FALLAR");
-//			assertEquals("ACEPTADO",((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
-		}
+
+
+		PedidoService.ClienteNoHabilitadoException exception = assertThrows(PedidoService.ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
+
+		assertEquals(exception.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		try {
+//
+//			Pedido resultado = pedidoService.savePedido(unPedido);
+//			assertEquals("DEBERIA ENTRAR AL CATCH", "DEBE FALLAR");
+////			assertEquals("ACEPTADO",((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
+//		} catch (Exception e) {
+//			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		}
 
 	}
 
@@ -172,7 +176,7 @@ class PedidoServiceImplUT {
 			System.out.println((pedidoResultado.getEstado().getEstado()));
 			assertEquals("ACEPTADO",(pedidoResultado.getEstado().getEstado()));
 		} catch (Exception e) {
-			assertEquals("PASO TEST", "NO PASO TEST");
+			fail("Se lanzó una excepción en savePedido()", e);
 		}
 
 	}
@@ -188,14 +192,17 @@ class PedidoServiceImplUT {
 		
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
-		
-		try {
-			Pedido pedidoResultado = pedidoService.savePedido(unPedido);
-		
-			assertEquals("DEBERIA ENTRAR","AL CATCH");
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
-		}
+
+		PedidoService.ClienteNoHabilitadoException exception = assertThrows(PedidoService.ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
+
+		assertEquals(exception.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		try {
+//			Pedido pedidoResultado = pedidoService.savePedido(unPedido);
+//
+//			assertEquals("DEBERIA ENTRAR","AL CATCH");
+//		} catch (Exception e) {
+//			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		}
 
 	}
 
