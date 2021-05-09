@@ -60,8 +60,7 @@ public class PedidoRest {
     		
     		for(DetallePedido d: nuevoPedido.getDetalle()) {
     			if(d.getCantidad() == null || d.getProducto() == null) {
-    				System.out.println("entra");
-    				return ResponseEntity.badRequest().body(nuevoPedido);
+    				return ResponseEntity.badRequest().build();
     			}
     		}
     		try {
