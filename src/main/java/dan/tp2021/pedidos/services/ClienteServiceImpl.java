@@ -1,5 +1,8 @@
 package dan.tp2021.pedidos.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -53,7 +56,6 @@ public class ClienteServiceImpl implements ClienteService{
 		throw new ClienteException("Error al buscar al cliente");
 
 	}
-
 
 
 }
