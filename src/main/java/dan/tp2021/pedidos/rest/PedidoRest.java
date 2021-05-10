@@ -26,6 +26,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -59,24 +60,32 @@ public class PedidoRest {
     		
     		for(DetallePedido d: nuevoPedido.getDetalle()) {
     			if(d.getCantidad() == null || d.getProducto() == null) {
-    				System.out.println("entra");
-    				return ResponseEntity.badRequest().body(nuevoPedido);
+    				return ResponseEntity.badRequest().build();
     			}
     		}
     		try {
-    			ResponseEntity<Pedido> rep = pedidoServiceImpl.savePedido(nuevoPedido);
-    			if(rep.getStatusCode().is2xxSuccessful()){
-					nuevoPedido.setId(ID_GEN++);
-					listaPedidos.add(nuevoPedido);
-					System.out.println("guarda bien");
-					return rep;
-				}
+    			Pedido rep = pedidoServiceImpl.savePedido(nuevoPedido);
+    			//Si no hay excepción es que se guardó correctamente.
+				nuevoPedido.setId(ID_GEN++);
+				listaPedidos.add(nuevoPedido);
+				System.out.println("guarda bien");
+				return ResponseEntity.ok(rep);
+
+			} catch (PedidoService.ClienteNoHabilitadoException e) {
+    			//Error, el cliente no está habilitado Responde 400?
+				return ResponseEntity.badRequest().build();
+			} catch (ClienteService.ClienteException e) {
+    			//Respondo Internal server error (500) porque me parece que esto no es un problema de los datos que mandó el cliente.
+    			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			} catch (Exception e) {
 				
 				System.out.println(e.getMessage());
+				//Esto definitivamente es un 500, error desconocido e inesperado.
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			}
     	}
-    	return ResponseEntity.badRequest().body(nuevoPedido);
+    	//No hay que devolver el pedido acá, porque no se guardó, no es válido.
+    	return ResponseEntity.badRequest().build();
     
 	}
 	

@@ -1,23 +1,15 @@
 package dan.tp2021.pedidos.service.impl;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import java.time.Duration;
 import java.util.ArrayList;
 
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Obra;
@@ -30,7 +22,7 @@ import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;
 
 @SpringBootTest
-class PedidoServiceImplUT {
+class PedidoServiceUnitTest {
 	
 	@Autowired
 	PedidoService pedidoService;
@@ -50,7 +42,7 @@ class PedidoServiceImplUT {
 	Pedido unPedido;
 
 	@BeforeEach
-	void setUp() throws Exception {
+	void setUp() {
 		unPedido = new Pedido();
 		Obra obra = new Obra();
 		Producto p = new Producto();
@@ -71,33 +63,34 @@ class PedidoServiceImplUT {
 	}
 
 	@Test
-	void testCrearPedidoConStockSinDeuda() {
+	void testCrearPedidoConStockSinDeuda() throws Exception {
 		
 		//Simular la busqueda de un Cliente, devuelve el clienteDTO.
-		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(ResponseEntity.ok(clienteDTO));
+		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		//Simular la verificacion del cliente en el Banco.
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 
-		ResponseEntity pedidoResultado;
+		Pedido pedidoResultado;
 	
 		try {
 			pedidoResultado = pedidoService.savePedido(unPedido);
-			assertEquals("ACEPTADO",((Pedido) pedidoResultado.getBody()).getEstado().getEstado());
+			assertEquals("ACEPTADO",(pedidoResultado.getEstado().getEstado()));
 
 		} catch (Exception e) {
 
-			assertEquals("PASO TEST", "NO PASO TEST");
-			e.printStackTrace();
+			fail("Se lanzó un excepción en savePedido()", e);
+//			assertEquals("PASO TEST", "NO PASO TEST");
+//			e.printStackTrace();
 		}
 
 	}
 
 	@Test
-	void testCrearPedidoSinStockSinDeuda() {
+	void testCrearPedidoSinStockSinDeuda() throws Exception {
 		
-		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(ResponseEntity.ok(clienteDTO));
+		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
 		// retorno el pedido
@@ -110,100 +103,106 @@ class PedidoServiceImplUT {
 		DetallePedido d4 = new DetallePedido(productoSinStock,2,450.0);
 		unPedido.getDetalle().add(d4);
 		
-		ResponseEntity pedidoResultado;
+		Pedido pedidoResultado;
 		try {
 			pedidoResultado = pedidoService.savePedido(unPedido);
-			assertEquals("PENDIENTE",((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
+			assertEquals("PENDIENTE",pedidoResultado.getEstado().getEstado());
 		} catch (Exception e) {
-			assertEquals("PASO TEST", "NO PASO TEST");
-			e.printStackTrace();
+			fail("Se lanzó una excepción en savePedido()", e);
 		}
 
 	}
 	
 	@Test
-	void testCrearPedidoConStockSinDeudaConPerfilBancarioMalo() {
+	void testCrearPedidoConStockSinDeudaConPerfilBancarioMalo() throws Exception {
 	
 		//Al clienteDTO le seteo un saldo menor a la compra que hizo
 		
-		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(ResponseEntity.ok(clienteDTO));
+		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(false);
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 	
 		try {
 	
-			ResponseEntity<Pedido> resultado = pedidoService.savePedido(unPedido);
-			assertEquals("ACEPTADO",((Pedido)resultado.getBody()).getEstado().getEstado());
+			Pedido resultado = pedidoService.savePedido(unPedido);
+			assertEquals("ACEPTADO",(resultado.getEstado().getEstado()));
 		} catch (Exception e) {
-			assertEquals("No debe fallar", "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+			fail("Se lanzó una excepción en savePedido()", e);
 		}
 
 	}
 
 	@Test
-	void testCrearPedidoConStockConDeudaConPerfilBancarioMalo() {
+	void testCrearPedidoConStockConDeudaConPerfilBancarioMalo() throws Exception {
 	
 		//Al clienteDTO le seteo un saldo menor a la compra que hizo
 		clienteDTO.setSaldoActual(100d);
 		
-		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(ResponseEntity.ok(clienteDTO));
+		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(false);
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
-	
-		try {
-	
-			ResponseEntity<Pedido> resultado = pedidoService.savePedido(unPedido);
-			assertEquals("DEBERIA ENTRAR AL CATCH", "DEBE FALLAR");
-//			assertEquals("ACEPTADO",((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
-		}
+
+
+		PedidoService.ClienteNoHabilitadoException exception = assertThrows(PedidoService.ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
+
+		assertEquals(exception.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		try {
+//
+//			Pedido resultado = pedidoService.savePedido(unPedido);
+//			assertEquals("DEBERIA ENTRAR AL CATCH", "DEBE FALLAR");
+////			assertEquals("ACEPTADO",((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
+//		} catch (Exception e) {
+//			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		}
 
 	}
 
 
 	@Test
-	void testCrearPedidoConStockConDeudaPerfilBueno() {
+	void testCrearPedidoConStockConDeudaPerfilBueno() throws Exception {
 	
 		//Al clienteDTO le seteo un saldo menor a la compra que hizo
 		clienteDTO.setSaldoActual(200d);
-		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(ResponseEntity.ok(clienteDTO));
+		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
 		
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		
 		try {
-			ResponseEntity pedidoResultado = pedidoService.savePedido(unPedido);
-			System.out.println(((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
-			assertEquals("ACEPTADO",((Pedido)pedidoResultado.getBody()).getEstado().getEstado());
+			Pedido pedidoResultado = pedidoService.savePedido(unPedido);
+			System.out.println((pedidoResultado.getEstado().getEstado()));
+			assertEquals("ACEPTADO",(pedidoResultado.getEstado().getEstado()));
 		} catch (Exception e) {
-			assertEquals("PASO TEST", "NO PASO TEST");
+			fail("Se lanzó una excepción en savePedido()", e);
 		}
 
 	}
 	
 	@Test
-	void testCrearPedidoConStockConDeudaMayorAlDecubiertoPerfilBueno() {
+	void testCrearPedidoConStockConDeudaMayorAlDecubiertoPerfilBueno() throws Exception {
 	
 		//Al clienteDTO le seteo un saldo menor a la compra que hizo
 		clienteDTO.setSaldoActual(200d);
 		clienteDTO.setMaxCuentaOnline(250d);
-		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(ResponseEntity.ok(clienteDTO));
+		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
 		
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
-		
-		try {
-			ResponseEntity pedidoResultado = pedidoService.savePedido(unPedido);
-		
-			assertEquals("DEBERIA ENTRAR","AL CATCH");
-		} catch (Exception e) {
-			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
-		}
+
+		PedidoService.ClienteNoHabilitadoException exception = assertThrows(PedidoService.ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
+
+		assertEquals(exception.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		try {
+//			Pedido pedidoResultado = pedidoService.savePedido(unPedido);
+//
+//			assertEquals("DEBERIA ENTRAR","AL CATCH");
+//		} catch (Exception e) {
+//			assertEquals(e.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
+//		}
 
 	}
 
