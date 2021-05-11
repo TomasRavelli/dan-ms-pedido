@@ -4,20 +4,18 @@ import java.util.List;
 
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
-import dan.tp2021.pedidos.services.ObraService.ObraNoEncontradaException;
-import dan.tp2021.pedidos.services.PedidoService.DetallePedidoNoEncontradoException;
-import dan.tp2021.pedidos.services.PedidoService.PedidoNoEncontradoException;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
+import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
+import dan.tp2021.pedidos.exceptions.pedido.*;
+
 
 
 public interface PedidoService {
 
-	public static class ClienteNoHabilitadoException extends Exception { ClienteNoHabilitadoException(String message){super(message);}}
-	public static class PedidoNoEncontradoException extends Exception {PedidoNoEncontradoException(String msg) {super (msg);}}
-	public static class DetallePedidoNoEncontradoException extends Exception {DetallePedidoNoEncontradoException(String msg) {super (msg);}}
+	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException;
 
-	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteService.ClienteException;
-
-	public Pedido addItem(Integer idPedido, DetallePedido detalle) throws PedidoNoEncontradoException;
+	public Pedido addItem(Integer idPedido, DetallePedido detalle) throws dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 
 	public Pedido updatePedido(Integer idPedido, Pedido nuevoPedido) throws PedidoNoEncontradoException;
 

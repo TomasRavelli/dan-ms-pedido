@@ -18,11 +18,13 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
+import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
+import dan.tp2021.pedidos.exceptions.pedido.DetallePedidoNoEncontradoException;
+import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 import dan.tp2021.pedidos.services.ClienteService;
-import dan.tp2021.pedidos.services.ObraService.ObraNoEncontradaException;
 import dan.tp2021.pedidos.services.PedidoService;
-import dan.tp2021.pedidos.services.PedidoService.DetallePedidoNoEncontradoException;
-import dan.tp2021.pedidos.services.PedidoService.PedidoNoEncontradoException;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
@@ -55,10 +57,10 @@ public class PedidoRest {
 				// Si no hay excepción es que se guardó correctamente.
 				return ResponseEntity.ok(rep);
 
-			} catch (PedidoService.ClienteNoHabilitadoException e) {
+			} catch (ClienteNoHabilitadoException e) {
 				// Error, el cliente no está habilitado Responde 400?
 				return ResponseEntity.badRequest().build();
-			} catch (ClienteService.ClienteException e) {
+			} catch (ClienteException e) {
 				// Respondo Internal server error (500) porque me parece que esto no es un
 				// problema de los datos que mandó el cliente.
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

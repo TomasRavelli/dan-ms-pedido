@@ -10,6 +10,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
 
 @Service
 public class ObraServiceImpl implements ObraService {
@@ -18,7 +19,7 @@ public class ObraServiceImpl implements ObraService {
 	public List<ObraDTO> getObrasByClienteParams(String s) throws ObraNoEncontradaException, HttpServerErrorException {
 
 		WebClient client = WebClient.create("http://localhost:8080/api/obra");
-
+		
 		ResponseEntity<List<ObraDTO>> response = client
 													.get()
 													.uri(s)
@@ -27,6 +28,7 @@ public class ObraServiceImpl implements ObraService {
 													.toEntityList(ObraDTO.class)
 													.block();
 
+		
 		if (response != null && response.getStatusCode() == HttpStatus.OK) {
 			System.out.println("Respuesta exitosa de la api de obras: \n" + response);
 			if (!response.getBody().isEmpty()) {

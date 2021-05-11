@@ -18,7 +18,11 @@ import dan.tp2021.pedidos.domain.EstadoPedido;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
-import dan.tp2021.pedidos.services.ObraService.ObraNoEncontradaException;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
+import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
+import dan.tp2021.pedidos.exceptions.pedido.DetallePedidoNoEncontradoException;
+import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
@@ -36,7 +40,7 @@ public class PedidoServiceImpl implements PedidoService {
 	ObraService obraServiceImpl;
 
 	@Override
-	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteService.ClienteException {
+	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
 
 		EstadoPedido estadoPedido = new EstadoPedido();
 
@@ -202,17 +206,15 @@ public class PedidoServiceImpl implements PedidoService {
 			}
 			queryString += "cuitCliente=" + cuitCliente;
 		}
-
-		try {
+		
 			List<ObraDTO> obrasDTO = obraServiceImpl.getObrasByClienteParams(queryString); //Buscar obras al microservicio usuarios.
 			List<Pedido> pedidosFiltrados = filtrarPedidos(listaPedidos, obrasDTO); //Filtrar por pedidos que tengan las obras traidas.
+			
 			if (!pedidosFiltrados.isEmpty()) {
 				return pedidosFiltrados;
 			}
 			throw new PedidoNoEncontradoException("No se encontraron pedidos que cumplan con estos criterios.");
-		} catch (ObraNoEncontradaException e) {
-			throw e;
-		}
+		
 
 	}
 

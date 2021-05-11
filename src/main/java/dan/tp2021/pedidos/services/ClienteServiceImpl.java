@@ -12,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 
 @Service
 public class ClienteServiceImpl implements ClienteService{
