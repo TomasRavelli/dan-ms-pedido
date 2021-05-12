@@ -207,13 +207,15 @@ public class PedidoServiceImpl implements PedidoService {
 			queryString += "cuitCliente=" + cuitCliente;
 		}
 		
-			List<ObraDTO> obrasDTO = obraServiceImpl.getObrasByClienteParams(queryString); //Buscar obras al microservicio usuarios.
-			List<Pedido> pedidosFiltrados = filtrarPedidos(listaPedidos, obrasDTO); //Filtrar por pedidos que tengan las obras traidas.
-			
+		List<ObraDTO> obrasDTO = obraServiceImpl.getObrasByClienteParams(queryString); //Buscar obras al microservicio usuarios.
+		List<Pedido> pedidosFiltrados = filtrarPedidos(listaPedidos, obrasDTO); //Filtrar por pedidos que tengan las obras traidas.
+
+		return pedidosFiltrados;
+		/*
 			if (!pedidosFiltrados.isEmpty()) {
 				return pedidosFiltrados;
 			}
-			throw new PedidoNoEncontradoException("No se encontraron pedidos que cumplan con estos criterios.");
+			throw new PedidoNoEncontradoException("No se encontraron pedidos que cumplan con estos criterios.");*/
 		
 
 	}
