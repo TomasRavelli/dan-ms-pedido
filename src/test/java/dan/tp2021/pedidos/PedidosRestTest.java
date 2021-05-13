@@ -6,6 +6,7 @@ import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
+import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 import dan.tp2021.pedidos.services.PedidoService;
 import dan.tp2021.pedidos.services.PedidoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,6 +25,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -51,8 +53,9 @@ public class PedidosRestTest {
         otroDetallePedido = new DetallePedido();
         unProducto = new Producto();
         otroProducto = new Producto();
-        unPedido.setDetalle(new ArrayList<>());
 
+        unPedido.setId(1);
+        unPedido.setDetalle(new ArrayList<>());
         unaObra.setId(1);
         unaObra.setDescripcion("Obra de prueba");
         unDetallePedido.setProducto(unProducto);
@@ -67,12 +70,13 @@ public class PedidosRestTest {
         unPedido.getDetalle().add(otroDetallePedido);
     }
 
+    //crear pedido
     @Test
     void crearPedidoCorrecto() throws ClienteException, ClienteNoHabilitadoException {
         when(pedidoServiceImpl.savePedido(any(Pedido.class))).thenReturn(unPedido);
         String server = "http://localhost:"+puerto+"/api/pedido";
-        HttpEntity<Pedido> requestCliente = new HttpEntity<>(unPedido);
-        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestCliente,String.class);
+        HttpEntity<Pedido> requestPedido = new HttpEntity<>(unPedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
         assertEquals(HttpStatus.OK,response.getStatusCode());
     }
 
@@ -81,8 +85,8 @@ public class PedidosRestTest {
         when(pedidoServiceImpl.savePedido(any(Pedido.class))).thenReturn(unPedido);
         unPedido.setObra(null);
         String server = "http://localhost:"+puerto+"/api/pedido";
-        HttpEntity<Pedido> requestCliente = new HttpEntity<>(unPedido);
-        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestCliente,String.class);
+        HttpEntity<Pedido> requestPedido = new HttpEntity<>(unPedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
     }
 
@@ -91,8 +95,8 @@ public class PedidosRestTest {
         when(pedidoServiceImpl.savePedido(any(Pedido.class))).thenReturn(unPedido);
         unPedido.setDetalle(null);
         String server = "http://localhost:"+puerto+"/api/pedido";
-        HttpEntity<Pedido> requestCliente = new HttpEntity<>(unPedido);
-        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestCliente,String.class);
+        HttpEntity<Pedido> requestPedido = new HttpEntity<>(unPedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
     }
 
@@ -101,8 +105,8 @@ public class PedidosRestTest {
         when(pedidoServiceImpl.savePedido(any(Pedido.class))).thenReturn(unPedido);
         unPedido.setDetalle(new ArrayList<>());
         String server = "http://localhost:"+puerto+"/api/pedido";
-        HttpEntity<Pedido> requestCliente = new HttpEntity<>(unPedido);
-        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestCliente,String.class);
+        HttpEntity<Pedido> requestPedido = new HttpEntity<>(unPedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
     }
 
@@ -111,8 +115,8 @@ public class PedidosRestTest {
         when(pedidoServiceImpl.savePedido(any(Pedido.class))).thenReturn(unPedido);
         unPedido.getDetalle().get(0).setProducto(null);
         String server = "http://localhost:"+puerto+"/api/pedido";
-        HttpEntity<Pedido> requestCliente = new HttpEntity<>(unPedido);
-        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestCliente,String.class);
+        HttpEntity<Pedido> requestPedido = new HttpEntity<>(unPedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
     }
 
@@ -121,8 +125,29 @@ public class PedidosRestTest {
         when(pedidoServiceImpl.savePedido(any(Pedido.class))).thenReturn(unPedido);
         unPedido.getDetalle().get(1).setCantidad(null);
         String server = "http://localhost:"+puerto+"/api/pedido";
-        HttpEntity<Pedido> requestCliente = new HttpEntity<>(unPedido);
-        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestCliente,String.class);
+        HttpEntity<Pedido> requestPedido = new HttpEntity<>(unPedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
         assertEquals(HttpStatus.BAD_REQUEST,response.getStatusCode());
+    }
+
+    //agregar item a pedido
+    @Test
+    void agregarItemAUnPedidoCorrecto() throws PedidoNoEncontradoException {
+        when(pedidoServiceImpl.addItem(any(Integer.class),any(DetallePedido.class))).thenReturn(unPedido);
+        unPedido.getDetalle().get(1).setCantidad(null);
+        String server = "http://localhost:"+puerto+"/api/pedido/"+unPedido.getId()+"/detalle";
+        HttpEntity<DetallePedido> requestPedido = new HttpEntity<>(otroDetallePedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
+        assertEquals(HttpStatus.OK,response.getStatusCode());
+    }
+
+    @Test
+    void agregarItemPedidoNoEncontrado() throws PedidoNoEncontradoException {
+        when(pedidoServiceImpl.addItem(any(Integer.class),any(DetallePedido.class))).thenThrow(new PedidoNoEncontradoException("no encontrado"));
+        unPedido.getDetalle().get(1).setCantidad(null);
+        String server = "http://localhost:"+puerto+"/api/pedido/"+unPedido.getId()+"/detalle";
+        HttpEntity<DetallePedido> requestPedido = new HttpEntity<>(otroDetallePedido);
+        ResponseEntity<String> response = testRestTemplate.exchange(server, HttpMethod.POST,requestPedido,String.class);
+        assertEquals(HttpStatus.NOT_FOUND,response.getStatusCode());
     }
 }
