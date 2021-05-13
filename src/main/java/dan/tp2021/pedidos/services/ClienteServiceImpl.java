@@ -1,5 +1,8 @@
 package dan.tp2021.pedidos.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -9,6 +12,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 
 @Service
 public class ClienteServiceImpl implements ClienteService{
@@ -53,7 +57,6 @@ public class ClienteServiceImpl implements ClienteService{
 		throw new ClienteException("Error al buscar al cliente");
 
 	}
-
 
 
 }

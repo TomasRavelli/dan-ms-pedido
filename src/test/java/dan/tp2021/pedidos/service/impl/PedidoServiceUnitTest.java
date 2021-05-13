@@ -16,6 +16,7 @@ import dan.tp2021.pedidos.domain.Obra;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.dto.ClienteDTO;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.repository.PedidoRepository;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
@@ -145,7 +146,7 @@ class PedidoServiceUnitTest {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 
 
-		PedidoService.ClienteNoHabilitadoException exception = assertThrows(PedidoService.ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
+		ClienteNoHabilitadoException exception = assertThrows(ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
 
 		assertEquals(exception.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
 //		try {
@@ -193,7 +194,7 @@ class PedidoServiceUnitTest {
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 
-		PedidoService.ClienteNoHabilitadoException exception = assertThrows(PedidoService.ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
+		ClienteNoHabilitadoException exception = assertThrows(ClienteNoHabilitadoException.class, () -> pedidoService.savePedido(unPedido));
 
 		assertEquals(exception.getMessage(), "Error. El cliente no cumple con las condiciones para adquirir el pedido");
 //		try {
