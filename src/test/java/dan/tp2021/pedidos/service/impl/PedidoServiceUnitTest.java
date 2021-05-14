@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 
+import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,7 @@ class PedidoServiceUnitTest {
 	PedidoService pedidoService;
 	
 	@MockBean
-	PedidoRepository pedidoRepo;
+	PedidoRepositoryInMemory pedidoRepo;
 	
 	@MockBean
 	ClienteService clienteService;
