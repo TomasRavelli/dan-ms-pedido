@@ -2,6 +2,9 @@ package dan.tp2021.pedidos.rest;
 
 
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +26,6 @@ import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
 import dan.tp2021.pedidos.exceptions.pedido.DetallePedidoNoEncontradoException;
 import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
-import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -35,6 +37,7 @@ import io.swagger.annotations.ApiResponses;
 @Api(value = "PedidoRest", description = "Se encarga de gestionar los pedidos de la empresa")
 public class PedidoRest {
 
+	private static final Logger logger = LoggerFactory.getLogger(PedidoRest.class);
 	@Autowired
 	PedidoService pedidoServiceImpl;
 
@@ -43,34 +46,41 @@ public class PedidoRest {
 			@ApiResponse(code = 401, message = "No autorizado"), @ApiResponse(code = 403, message = "Prohibido") })
 	@PostMapping
 	public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido) {
-
+		logger.debug("Entra al post");
 		if (nuevoPedido != null && nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null
 				&& nuevoPedido.getDetalle().size() > 0) {
-
+			
 			for (DetallePedido d : nuevoPedido.getDetalle()) {
 				if (d.getCantidad() == null || d.getProducto() == null) {
 					return ResponseEntity.badRequest().build();
 				}
 			}
+			logger.debug("Cumple las precondiciones en POST");
 			try {
 				Pedido rep = pedidoServiceImpl.savePedido(nuevoPedido);
 				// Si no hay excepción es que se guardó correctamente.
+				logger.info("ID NUEVA ENTIDAD: "+ rep.getId());
 				return ResponseEntity.ok(rep);
 
 			} catch (ClienteNoHabilitadoException e) {
 				// Error, el cliente no está habilitado Responde 400?
+				logger.error("Cliente no habilitado. Mensaje: "+ e.getMessage());
 				return ResponseEntity.badRequest().build();
 			} catch (ClienteException e) {
 				// Respondo Internal server error (500) porque me parece que esto no es un
 				// problema de los datos que mandó el cliente.
+
+				logger.error("Cliente exception. Mensaje: "+ e.getMessage());
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			} catch (Exception e) {
 
-				System.out.println(e.getMessage());
+				logger.error("Error desconocido. Mensaje: "+ e.getMessage());
 				// Esto definitivamente es un 500, error desconocido e inesperado.
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			}
 		}
+
+		logger.error("No se cumplieron las precondiciones.");
 		// No hay que devolver el pedido acá, porque no se guardó, no es válido.
 		return ResponseEntity.badRequest().build();
 
@@ -83,13 +93,15 @@ public class PedidoRest {
 	@PostMapping("/{idPedido}/detalle")
 	public ResponseEntity<Pedido> agregarItemAPedido(@PathVariable Integer idPedido,
 			@RequestBody DetallePedido detalle) {
-
+		logger.debug("Entra a crear nuevo detalle de pedido");
 		try {
 			Pedido p = pedidoServiceImpl.addItem(idPedido, detalle);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+			logger.error("Pedido no encontrado. Mensaje: "+e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -100,15 +112,19 @@ public class PedidoRest {
 			@ApiResponse(code = 404, message = "Pedido no encontrado"), })
 	@PutMapping("/{idPedido}")
 	public ResponseEntity<Pedido> actualizarPedido(@PathVariable Integer idPedido, @RequestBody Pedido nuevoPedido) {
-
+		logger.debug("entra a actualizar pedido. Id: " + idPedido);
 		try {
 			Pedido p = pedidoServiceImpl.updatePedido(idPedido, nuevoPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (HttpClientErrorException e) {
+			logger.error("Http Client Error. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(e.getStatusCode()).build();
 		} catch (Exception e) {
+
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -120,13 +136,15 @@ public class PedidoRest {
 			@ApiResponse(code = 404, message = "Pedido no encontrado"), })
 	@DeleteMapping("/{idPedido}")
 	public ResponseEntity<Pedido> deletePedido(@PathVariable Integer idPedido) {
-
+		logger.debug("Entra a borrar pedido. IdPedido: " + idPedido);
 		try {
 			Pedido p = pedidoServiceImpl.deletePedidoById(idPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+			logger.error("Error no conocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -140,14 +158,21 @@ public class PedidoRest {
 	@DeleteMapping("/{idPedido}/detalle/{idDetalle}")
 	public ResponseEntity<Pedido> deleteItemPedido(@PathVariable Integer idPedido, @PathVariable Integer idDetalle) {
 
+		logger.debug("Entra borrar item de pedido. IdPEdido: " + idPedido + ", IdItem: " + idDetalle);
 		try {
 			Pedido p = pedidoServiceImpl.deleteDetallePedidoPedidoById(idPedido, idDetalle);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (DetallePedidoNoEncontradoException e) {
+
+			logger.error("Detalle no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -160,13 +185,16 @@ public class PedidoRest {
 
 	@GetMapping("/{idPedido}")
 	public ResponseEntity<Pedido> getPedidoById(@PathVariable Integer idPedido) {
-
+		logger.debug("Entra al get pedido by id. IdPedido: " + idPedido);
 		try {
 			Pedido p = pedidoServiceImpl.getPedidoByID(idPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -179,13 +207,17 @@ public class PedidoRest {
 
 	@GetMapping("/porObra/{idObra}")
 	public ResponseEntity<List<Pedido>> getPedidoByIdObra(@PathVariable Integer idObra) {
-
+		logger.debug("Entra a getPedidoByIdObra. IdObra: " + idObra);
 		try {
 			List<Pedido> p = pedidoServiceImpl.getPedidoByIdObra(idObra);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -200,15 +232,21 @@ public class PedidoRest {
 	public ResponseEntity<List<Pedido>> getPedidoByIdClienteOrCuitCliente(
 			@RequestParam(required = false, defaultValue = "0") Integer idCliente,
 			@RequestParam(required = false, defaultValue = "") String cuitCliente) {
-
+		logger.debug("Entra al get de todos los los pedidos");
 		try {
 			List<Pedido> p = pedidoServiceImpl.getPedidosByClientParams(idCliente, cuitCliente);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
+
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (ObraNoEncontradaException e) {
+
+			logger.error("Obra no encontrada. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
+
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -222,7 +260,7 @@ public class PedidoRest {
 	public ResponseEntity<DetallePedido> getDetallePedidoById(@PathVariable Integer idPedido,
 			@PathVariable Integer id) {
 		DetallePedido detalleResultado;
-
+		logger.debug("Get detalle pedido by ID");
 		try {
 			
 			detalleResultado = pedidoServiceImpl.getDetallePedidoById(idPedido, id);
@@ -230,14 +268,18 @@ public class PedidoRest {
 			return ResponseEntity.ok(detalleResultado);
 
 		} catch (PedidoNoEncontradoException e) {
-			
+
+			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 
 		} catch (DetallePedidoNoEncontradoException e) {
-			
+
+			logger.error("Detalle Pedido no encontrado. Mensaje: " + e.getMessage());
 			return ResponseEntity.notFound().build();
 		
 		} catch (Exception e) {
+
+			logger.error("Error desconocido. Mensaje: " + e.getMessage());
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}

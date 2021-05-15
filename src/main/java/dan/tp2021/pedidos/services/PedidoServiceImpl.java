@@ -1,10 +1,13 @@
 package dan.tp2021.pedidos.services;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpClientErrorException.Forbidden;
 import org.springframework.web.client.HttpServerErrorException;
 
+import dan.tp2021.pedidos.dao.PedidoH2Repository;
 import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.EstadoPedido;
@@ -26,9 +30,12 @@ import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(PedidoServiceImpl.class);
 
 	@Autowired
-	PedidoRepositoryInMemory pedidoRepositoryInMemory;
+//	PedidoRepositoryInMemory pedidoRepositoryInMemory;
+	PedidoH2Repository pedidoRepositoryInMemory;
 
 	@Autowired
 	ClienteService clienteServiceImpl;
@@ -44,22 +51,18 @@ public class PedidoServiceImpl implements PedidoService {
 
 		EstadoPedido estadoPedido = new EstadoPedido();
 
-		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p);
+		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p); //TODO aqui podriamos llamar a ObraService para que guarde la obra en la BD y asi establecer la relacion. 
 		// Si llegamos acá quiere decir que no hubo error, porque cuando hay error se
 		// lanza una excepción y la ejecución se corta.
-
+		
+		logger.debug("Cliente buscado, ID: "+clienteDTO.getId());
 		double sumaCostosProductos = 0;
 		boolean stockDisponible = true;
 
 		for (DetallePedido dp : p.getDetalle()) {
 
 			sumaCostosProductos += dp.getPrecio();
-			// Aca se deberia usar el materialService creo. COMENTARIO DE PERU.
-			// Eso estaba implementado por el profe, si quieren lo hacemos como el.
-			// COMENTARIO TOMAS.
-//				if(materialService.stockDisponible(dp.getProducto()) <= 0 && stockDisponible){
-//					stockDisponible = false;
-//				}
+
 			if (dp.getProducto().getStockActual() <= 0 && stockDisponible) {
 
 				stockDisponible = false;
@@ -70,11 +73,7 @@ public class PedidoServiceImpl implements PedidoService {
 
 		boolean esDeudor = sumaCostosProductos > clienteDTO.getSaldoActual(),
 				superaDescubierto = sumaCostosProductos > clienteDTO.getMaxCuentaOnline();
-		boolean condicionC = !superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); // TODO ver
-																											// como
-																											// tratamos
-																											// el
-																											// getHabilitadoOnline
+		boolean condicionC = !superaDescubierto && bancoServiceImpl.verificarSituacionCliente(clienteDTO); // TODO ver como tratamos el getHabilitadoOnline
 
 		if (!esDeudor || condicionC) {
 
@@ -85,10 +84,9 @@ public class PedidoServiceImpl implements PedidoService {
 			}
 
 			p.setEstado(estadoPedido);
-			// TODO ver que hacer si otras implementaciones de este método lanzan
-			// excepciones.
-			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y
-			// lanzamos otra excepción más "linda"?
+			p.setFechaPedido(Instant.now());
+			// TODO ver que hacer si otras implementaciones de este método lanzan excepciones.
+			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y lanzamos otra excepción más "linda"?
 			return pedidoRepositoryInMemory.save(p);
 
 		} else {
