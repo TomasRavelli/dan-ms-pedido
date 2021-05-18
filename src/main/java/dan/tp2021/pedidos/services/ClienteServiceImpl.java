@@ -26,14 +26,15 @@ public class ClienteServiceImpl implements ClienteService{
 		
 		// Buscar en el servicio Usuario la obra, para encontrar a que cliente
 		// pertenece.
-		WebClient client = WebClient.create("http://localhost:8080/api");
-
+		WebClient client = WebClient.create("http://localhost:9000/api");
+		
 		ResponseEntity<ObraDTO> response = client.get()
 				.uri("/obra/"+p.getObra().getId())
 				.accept(MediaType.APPLICATION_JSON)
 				.retrieve()
 				.toEntity(ObraDTO.class)
 				.block();
+		logger.debug("Status response from api obra: " + response.getStatusCodeValue());
 		if (response.getStatusCode().equals(HttpStatus.OK)) {
 
 			// TODO ver si se puede arreglar para que no entre dos veces a la API de cliente.

@@ -5,14 +5,16 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Table;
 
 
 @Entity
+@Table(catalog = "`dan-ms-productos`")
 public class Producto {
 	
 	@Id
 //	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ID_PRODUCTO")
+//	@Column(name = "ID_PRODUCTO")
 	private Integer id;
 	private String descripcion;
 	private Double precio;
