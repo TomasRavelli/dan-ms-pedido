@@ -1,5 +1,6 @@
 package dan.tp2021.pedidos;
 
+import dan.tp2021.pedidos.dao.PedidoRepository;
 import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Obra;
@@ -9,7 +10,6 @@ import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
-import dan.tp2021.pedidos.repository.PedidoRepository;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;

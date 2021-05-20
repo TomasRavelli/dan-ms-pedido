@@ -20,7 +20,7 @@ public class ObraServiceImpl implements ObraService {
 	@Override
 	public List<ObraDTO> getObrasByClienteParams(String s) throws ObraNoEncontradaException, HttpServerErrorException {
 		logger.debug("Entra a buscar la obra");
-		WebClient client = WebClient.create("http://localhost:8080/api/obra");
+		WebClient client = WebClient.create("http://localhost:9000/api/obra");
 		
 		ResponseEntity<List<ObraDTO>> response = client
 													.get()

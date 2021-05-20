@@ -16,6 +16,7 @@ import org.springframework.web.client.HttpClientErrorException.Forbidden;
 import org.springframework.web.client.HttpServerErrorException;
 
 import dan.tp2021.pedidos.dao.PedidoH2Repository;
+import dan.tp2021.pedidos.dao.PedidoRepository;
 import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.EstadoPedido;
@@ -35,8 +36,8 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Autowired
 //	PedidoRepositoryInMemory pedidoRepositoryInMemory;
-	PedidoH2Repository pedidoRepositoryInMemory;
-
+//	PedidoH2Repository pedidoRepositoryInMemory;
+	PedidoRepository pedidoRepositoryInMemory;
 	@Autowired
 	ClienteService clienteServiceImpl;
 
@@ -87,6 +88,9 @@ public class PedidoServiceImpl implements PedidoService {
 			p.setFechaPedido(Instant.now());
 			// TODO ver que hacer si otras implementaciones de este método lanzan excepciones.
 			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y lanzamos otra excepción más "linda"?
+
+			logger.debug("Mateerial del primer detalle pedido?: " + p.getDetalle().get(0).getProducto());
+			logger.debug("ID material del primer detalle pedido: " + p.getDetalle().get(0).getProducto().getId());
 			return pedidoRepositoryInMemory.save(p);
 
 		} else {

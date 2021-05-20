@@ -47,7 +47,7 @@ public class ClienteServiceImpl implements ClienteService{
 			ObraDTO obra = response.getBody();
 
 			ResponseEntity<ClienteDTO> clienteResponse = client.get()
-					.uri("/cliente/"+obra.getIdCliente())
+					.uri("/cliente/"+obra.getCliente().getId())
 					.accept(MediaType.APPLICATION_JSON)
 					.retrieve()
 					.toEntity(ClienteDTO.class)

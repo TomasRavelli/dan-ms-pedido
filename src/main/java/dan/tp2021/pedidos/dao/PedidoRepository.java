@@ -1,7 +1,6 @@
-package dan.tp2021.pedidos.repository;
+package dan.tp2021.pedidos.dao;
 
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
 
 import dan.tp2021.pedidos.domain.Pedido;
 
