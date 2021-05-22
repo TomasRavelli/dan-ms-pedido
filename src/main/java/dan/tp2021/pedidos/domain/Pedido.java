@@ -20,20 +20,20 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 public class Pedido {
 
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ID_PEDIDO")
+//	@Column(name = "ID_PEDIDO")
 	private Integer id;
 	private Instant fechaPedido;
 	
 	@ManyToOne
-	@JoinColumn(name = "ID_OBRA")
+//	@JoinColumn(name = "ID_OBRA")
 	private Obra obra; //TODO verlo. Creo que debemos ir al servicio de USUARIOS y buscar si existe una obra con este ID, en ese caso, la guardamos en esta BD antes de guardar el Pedido, solo con el proposito de tener la relacion. Otra opcion seria que cada cambio que ocurra en la BD de datos del servicio USUARIOS se refleje en esta BD.
 	
 	@OneToMany(cascade = CascadeType.ALL)
-	@JoinColumn(name = "ID_PEDIDO")
+//	@JoinColumn(name = "ID_PEDIDO")
 	private List<DetallePedido> detalle;
 	
 	@ManyToOne(cascade = CascadeType.ALL)
-	@JoinColumn(name = "ID_ESTADO_PEDIDO")
+//	@JoinColumn(name = "ID_ESTADO_PEDIDO")
 	private EstadoPedido estado; //Lo podriamoss tener precargados en la BD.
 	
 	public Integer getId() {

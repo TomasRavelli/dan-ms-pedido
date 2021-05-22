@@ -8,20 +8,21 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 @Entity
 public class DetallePedido {
 
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ID_DETALLE_PEDIDO")
+//	@Column(name = "ID_DETALLE_PEDIDO")
 	private Integer id;
 	
 	private Integer cantidad;
 	private Double precio;
 	
 	@ManyToOne
-	@JoinColumn(name = "ID_PRODUCTO")
+//	@JoinColumn(name = "ID_PRODUCTO")
 	private Producto producto; //TODO verlo. Creo que debemos ir al servicio de MATERIAL y buscar si existe un PRODUCTO con este ID, en ese caso, lo guardamos en esta BD antes de guardar el DetallePedido, solo con el proposito de tener la relacion. Otra opcion seria que cada cambio que ocurra en la BD de datos del servicio MATERIAL se refleje en esta BD ymantener todos los materiales en ambas BD, lo cual no tiene sentido.
 	
 	

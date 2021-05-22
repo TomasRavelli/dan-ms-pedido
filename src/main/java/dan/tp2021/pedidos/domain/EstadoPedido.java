@@ -10,7 +10,7 @@ import javax.persistence.Id;
 public class EstadoPedido {
 	//TODO podriamos tenerlo precargado en la BD
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "ID_ESTADO_PEDIDO")
+//	@Column(name = "ID_ESTADO_PEDIDO")
 	private Integer id;
 	private String estado;
 	
