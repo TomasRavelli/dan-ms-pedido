@@ -1,12 +1,15 @@
 package dan.tp2021.pedidos.services;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpClientErrorException.Forbidden;
@@ -38,6 +41,9 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Autowired
 	ObraService obraServiceImpl;
+
+	@Autowired
+	JmsTemplate jms;
 
 	@Override
 	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
@@ -89,6 +95,13 @@ public class PedidoServiceImpl implements PedidoService {
 			// excepciones.
 			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y
 			// lanzamos otra excepción más "linda"?
+
+			HashMap<String, Integer> detalles = new HashMap<>();
+			for(DetallePedido d: p.getDetalle()){
+				detalles.put(d.getProducto().getId().toString(),d.getCantidad());
+				//Al id lo mando como String porque el mensaje necesita un hashmap con la key en String
+			}
+			jms.convertAndSend("COLA_PEDIDOS",detalles);
 			return pedidoRepositoryInMemory.save(p);
 
 		} else {
