@@ -1,9 +1,6 @@
 package dan.tp2021.pedidos.dto;
 
-import java.util.Date;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import java.time.Instant;
 
 
 public class ClienteDTO {
@@ -17,7 +14,7 @@ public class ClienteDTO {
     //No hace falta el habilitado, cada vez que se necesite saber la situacion el sistema se comunicaria
     //con el sistema de BCRA
     private Boolean habilitadoOnline;
-    private Date fechaBaja;
+    private Instant fechaBaja;
 	
     public ClienteDTO() {
 		super();
@@ -27,7 +24,7 @@ public class ClienteDTO {
 
 
 	public ClienteDTO(Integer id, String razonSocial, String cuit, String mail, Double maxCuentaOnline,
-			Double saldoActual, Boolean habilitadoOnline, Date fechaBaja) {
+					  Double saldoActual, Boolean habilitadoOnline, Instant fechaBaja) {
 		super();
 		this.id = id;
 		this.razonSocial = razonSocial;
@@ -104,13 +101,13 @@ public class ClienteDTO {
 
 
 
-	public Date getFechaBaja() {
+	public Instant getFechaBaja() {
 		return fechaBaja;
 	}
 
 
 
-	public void setFechaBaja(Date fechaBaja) {
+	public void setFechaBaja(Instant fechaBaja) {
 		this.fechaBaja = fechaBaja;
 	}
 

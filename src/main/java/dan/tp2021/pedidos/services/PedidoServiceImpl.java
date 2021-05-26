@@ -12,12 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpClientErrorException.Forbidden;
-import org.springframework.web.client.HttpServerErrorException;
 
-import dan.tp2021.pedidos.dao.PedidoH2Repository;
 import dan.tp2021.pedidos.dao.PedidoRepository;
-import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.EstadoPedido;
 import dan.tp2021.pedidos.domain.Pedido;

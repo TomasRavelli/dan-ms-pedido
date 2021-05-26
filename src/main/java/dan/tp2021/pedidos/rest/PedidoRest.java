@@ -64,23 +64,23 @@ public class PedidoRest {
 
 			} catch (ClienteNoHabilitadoException e) {
 				// Error, el cliente no está habilitado Responde 400?
-				logger.error("Cliente no habilitado. Mensaje: "+ e.getMessage());
+				logger.warn("Cliente no habilitado. Mensaje: "+ e.getMessage(), e);
 				return ResponseEntity.badRequest().build();
 			} catch (ClienteException e) {
 				// Respondo Internal server error (500) porque me parece que esto no es un
 				// problema de los datos que mandó el cliente.
 
-				logger.error("Cliente exception. Mensaje: "+ e.getMessage());
+				logger.error("Cliente exception. Mensaje: "+ e.getMessage(), e);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			} catch (Exception e) {
 
-				logger.error("Error desconocido. Mensaje: "+ e.getMessage());
+				logger.error("Error desconocido. Mensaje: "+ e.getMessage(), e);
 				// Esto definitivamente es un 500, error desconocido e inesperado.
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			}
 		}
 
-		logger.error("No se cumplieron las precondiciones.");
+		logger.warn("No se cumplieron las precondiciones.");
 		// No hay que devolver el pedido acá, porque no se guardó, no es válido.
 		return ResponseEntity.badRequest().build();
 
@@ -98,10 +98,10 @@ public class PedidoRest {
 			Pedido p = pedidoServiceImpl.addItem(idPedido, detalle);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			logger.error("Pedido no encontrado. Mensaje: "+e.getMessage());
+			logger.warn("Pedido no encontrado. Mensaje: "+e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -117,14 +117,14 @@ public class PedidoRest {
 			Pedido p = pedidoServiceImpl.updatePedido(idPedido, nuevoPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (HttpClientErrorException e) {
-			logger.error("Http Client Error. Mensaje: " + e.getMessage());
+			logger.error("Http Client Error. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(e.getStatusCode()).build();
 		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -141,10 +141,10 @@ public class PedidoRest {
 			Pedido p = pedidoServiceImpl.deletePedidoById(idPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
-			logger.error("Error no conocido. Mensaje: " + e.getMessage());
+			logger.error("Error no conocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -164,15 +164,15 @@ public class PedidoRest {
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
 
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (DetallePedidoNoEncontradoException e) {
 
-			logger.error("Detalle no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("Detalle no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -190,11 +190,11 @@ public class PedidoRest {
 			Pedido p = pedidoServiceImpl.getPedidoByID(idPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -213,11 +213,11 @@ public class PedidoRest {
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
 
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 
@@ -238,15 +238,15 @@ public class PedidoRest {
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
 
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (ObraNoEncontradaException e) {
 
-			logger.error("Obra no encontrada. Mensaje: " + e.getMessage());
+			logger.warn("Obra no encontrada. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
@@ -269,17 +269,17 @@ public class PedidoRest {
 
 		} catch (PedidoNoEncontradoException e) {
 
-			logger.error("PEdido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 
 		} catch (DetallePedidoNoEncontradoException e) {
 
-			logger.error("Detalle Pedido no encontrado. Mensaje: " + e.getMessage());
+			logger.warn("Detalle Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		
 		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage());
+			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
 	}
