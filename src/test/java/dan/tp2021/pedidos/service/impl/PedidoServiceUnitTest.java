@@ -5,7 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.util.ArrayList;
 
-import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
+import dan.tp2021.pedidos.dao.PedidoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,6 @@ import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
-import dan.tp2021.pedidos.repository.PedidoRepository;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;
@@ -30,7 +29,7 @@ class PedidoServiceUnitTest {
 	PedidoService pedidoService;
 	
 	@MockBean
-	PedidoRepositoryInMemory pedidoRepo;
+	PedidoRepository pedidoRepo;
 	
 	@MockBean
 	ClienteService clienteService;

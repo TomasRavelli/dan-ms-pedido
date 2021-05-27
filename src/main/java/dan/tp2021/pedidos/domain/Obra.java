@@ -1,7 +1,19 @@
 package dan.tp2021.pedidos.domain;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
+@Entity
+@Table(catalog = "`dan-ms-usuarios`")
 public class Obra {
 	
+	@Id
+//	@GeneratedValue(strategy = GenerationType.IDENTITY)
+//	@Column(name = "ID_OBRA")
 	private Integer id;
 	private String descripcion;
 
@@ -18,6 +30,7 @@ public class Obra {
 	}
 
 	public void setId(Integer id) {
+		
 		this.id = id;
 	}
 	

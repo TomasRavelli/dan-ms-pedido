@@ -1,28 +1,22 @@
 package dan.tp2021.pedidos;
 
-import dan.tp2021.pedidos.dao.PedidoRepositoryInMemory;
+import dan.tp2021.pedidos.dao.PedidoRepository;
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Obra;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
-import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
-import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
-import dan.tp2021.pedidos.repository.PedidoRepository;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.PedidoService;
-import dan.tp2021.pedidos.services.PedidoServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -32,12 +26,10 @@ import java.util.ArrayList;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-//@SpringBootApplication
-//@Profile("test")
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class PedidosRestTest {
     private TestRestTemplate testRestTemplate = new TestRestTemplate();
@@ -57,7 +49,7 @@ public class PedidosRestTest {
     PedidoService pedidoService;
 
     @MockBean
-    PedidoRepositoryInMemory pedidoRepo;
+    PedidoRepository pedidoRepo;
 
     @MockBean
     ClienteService clienteService;
@@ -111,7 +103,7 @@ public class PedidosRestTest {
     }
 
     @Test
-    void crearPedidoSinObra() throws ClienteException, ClienteNoHabilitadoException {
+    void crearPedidoSinObra() throws ClienteException{
         when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
         when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
         when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -123,7 +115,7 @@ public class PedidosRestTest {
     }
 
     @Test
-    void crearPedidoSinDetalles() throws ClienteException, ClienteNoHabilitadoException {
+    void crearPedidoSinDetalles() throws ClienteException {
         when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
         when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
         when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -135,7 +127,7 @@ public class PedidosRestTest {
     }
 
     @Test
-    void crearPedidoConDetallesSinContenido() throws ClienteException, ClienteNoHabilitadoException {
+    void crearPedidoConDetallesSinContenido() throws ClienteException {
         when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
         when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
         when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -147,7 +139,7 @@ public class PedidosRestTest {
     }
 
     @Test
-    void crearPedidoConUnDetalleSinProducto() throws ClienteException, ClienteNoHabilitadoException {
+    void crearPedidoConUnDetalleSinProducto() throws ClienteException {
         when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
         when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
         when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -159,7 +151,7 @@ public class PedidosRestTest {
     }
 
     @Test
-    void crearPedidoConUnDetalleSinCantidad() throws ClienteException, ClienteNoHabilitadoException {
+    void crearPedidoConUnDetalleSinCantidad() throws ClienteException {
         when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
         when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
         when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -172,7 +164,7 @@ public class PedidosRestTest {
 
     //agregar item a pedido
     @Test
-    void agregarItemAUnPedidoCorrecto() throws PedidoNoEncontradoException {
+    void agregarItemAUnPedidoCorrecto() {
         when(pedidoRepo.findById(any(Integer.class))).thenReturn(java.util.Optional.ofNullable(unPedido));
         when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
         when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
