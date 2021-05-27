@@ -164,7 +164,7 @@ public class PedidoRest {
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
 
-			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
+			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (DetallePedidoNoEncontradoException e) {
 
@@ -190,7 +190,7 @@ public class PedidoRest {
 			Pedido p = pedidoServiceImpl.getPedidoByID(idPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
+			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 
@@ -212,7 +212,7 @@ public class PedidoRest {
 			List<Pedido> p = pedidoServiceImpl.getPedidoByIdObra(idObra);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-
+			//TODO no se encontró un pedido con essta obra, no creo que sea un error. Pueden existir obras sin pedidos.
 			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
@@ -237,11 +237,11 @@ public class PedidoRest {
 			List<Pedido> p = pedidoServiceImpl.getPedidosByClientParams(idCliente, cuitCliente);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-
-			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
+			//TODO Puede haber clientes sin pedidos, eso no es un error.
+			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (ObraNoEncontradaException e) {
-
+			//TODO VER, clientes sin obras es posible? No debería, pero igual 404 me parece raro
 			logger.warn("Obra no encontrada. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
