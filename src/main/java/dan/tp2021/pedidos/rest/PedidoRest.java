@@ -47,6 +47,11 @@ public class PedidoRest {
 	@PostMapping
 	public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido) {
 		logger.debug("Entra al post");
+		
+		nuevoPedido.setEstado(pedidoServiceImpl.getEstadoNuevoPedido("NUEVO"));//el estado del pedido siempre es NUEVO al crear, busco este estado en la BD.
+		
+		logger.debug("Estado del pedido: " + nuevoPedido.getEstado().getEstado());
+		
 		if (nuevoPedido != null && nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null
 				&& nuevoPedido.getDetalle().size() > 0) {
 			
@@ -229,12 +234,14 @@ public class PedidoRest {
 			@ApiResponse(code = 404, message = "Pedidos no encontrados"), })
 
 	@GetMapping()
-	public ResponseEntity<List<Pedido>> getPedidoByIdClienteOrCuitCliente(
+	public ResponseEntity<List<Pedido>> getPedidoByParams(
 			@RequestParam(required = false, defaultValue = "0") Integer idCliente,
-			@RequestParam(required = false, defaultValue = "") String cuitCliente) {
+			@RequestParam(required = false, defaultValue = "") String cuitCliente,
+			@RequestParam(required = false, defaultValue = "") String estadoPedido) {
+		
 		logger.debug("Entra al get de todos los los pedidos");
 		try {
-			List<Pedido> p = pedidoServiceImpl.getPedidosByClientParams(idCliente, cuitCliente);
+			List<Pedido> p = pedidoServiceImpl.getPedidosByClientParams(idCliente, cuitCliente, estadoPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
 			//TODO Puede haber clientes sin pedidos, eso no es un error.

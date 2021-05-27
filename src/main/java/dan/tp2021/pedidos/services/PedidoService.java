@@ -3,6 +3,7 @@ package dan.tp2021.pedidos.services;
 import java.util.List;
 
 import dan.tp2021.pedidos.domain.DetallePedido;
+import dan.tp2021.pedidos.domain.EstadoPedido;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
@@ -27,7 +28,9 @@ public interface PedidoService {
 
 	public List<Pedido> getPedidoByIdObra(Integer idObra) throws PedidoNoEncontradoException;
 
-	public List<Pedido> getPedidosByClientParams(Integer idCliente, String cuitCliente) throws PedidoNoEncontradoException, ObraNoEncontradaException;
+	public List<Pedido> getPedidosByClientParams(Integer idCliente, String cuitCliente, String estadoPedido) throws PedidoNoEncontradoException, ObraNoEncontradaException;
 
 	public DetallePedido getDetallePedidoById(Integer idPedido, Integer id)throws DetallePedidoNoEncontradoException, PedidoNoEncontradoException;
+
+	public EstadoPedido getEstadoNuevoPedido(String string);
 }

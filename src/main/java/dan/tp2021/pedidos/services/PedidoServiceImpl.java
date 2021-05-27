@@ -33,7 +33,7 @@ public class PedidoServiceImpl implements PedidoService {
 	@Autowired
 //	PedidoRepositoryInMemory pedidoRepositoryInMemory;
 //	PedidoH2Repository pedidoRepositoryInMemory;
-	PedidoRepository pedidoRepositoryInMemory;
+	PedidoRepository pedidoRepository;
 	@Autowired
 	ClienteService clienteServiceImpl;
 
@@ -42,11 +42,12 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Autowired
 	ObraService obraServiceImpl;
+	
+	@Autowired
+	EstadoPedidoService estadoPedidoService;
 
 	@Override
 	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
-
-		EstadoPedido estadoPedido = new EstadoPedido();
 
 		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p); //TODO aqui podriamos llamar a ObraService para que guarde la obra en la BD y asi establecer la relacion. 
 		// Si llegamos acá quiere decir que no hubo error, porque cuando hay error se
@@ -75,21 +76,21 @@ public class PedidoServiceImpl implements PedidoService {
 		if (!esDeudor || condicionC) {
 
 			if (stockDisponible) {
-				estadoPedido.setEstado("ACEPTADO");
+				p.setEstado(estadoPedidoService.findByEstado("ACEPTADO"));
 			} else {
-				estadoPedido.setEstado("PENDIENTE");
+				p.setEstado(estadoPedidoService.findByEstado("PENDIENTE"));
 			}
 
-			p.setEstado(estadoPedido);
-			p.setFechaPedido(Instant.now());
+			p.setFechaPedido(Instant.now());//Esta bien? Segun la guia 6 va la fecha de envio solicitada por el cliente.
 			// TODO ver que hacer si otras implementaciones de este método lanzan excepciones.
 			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y lanzamos otra excepción más "linda"?
 
-			logger.debug("Mateerial del primer detalle pedido?: " + p.getDetalle().get(0).getProducto());
+			logger.debug("Material del primer detalle pedido?: " + p.getDetalle().get(0).getProducto());
 			logger.debug("ID material del primer detalle pedido: " + p.getDetalle().get(0).getProducto().getId());
-			return pedidoRepositoryInMemory.save(p);
+			return pedidoRepository.save(p);
 
 		} else {
+			//TODO preguntar si aca no hay que guardar igual el pedido con estado RECHAZADO.
 			throw new ClienteNoHabilitadoException(
 					"Error. El cliente no cumple con las condiciones para adquirir el pedido");
 		}
@@ -99,12 +100,12 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public Pedido addItem(Integer idPedido, DetallePedido detalle) throws PedidoNoEncontradoException {
 
-		Optional<Pedido> p = pedidoRepositoryInMemory.findById(idPedido);
+		Optional<Pedido> p = pedidoRepository.findById(idPedido);
 
 		if (p.isPresent()) {
 			Pedido ped = p.get();
 			ped.getDetalle().add(detalle);
-			return pedidoRepositoryInMemory.save(ped);
+			return pedidoRepository.save(ped);
 		}
 
 		throw new PedidoNoEncontradoException("Pedido inexistente.");
@@ -114,10 +115,10 @@ public class PedidoServiceImpl implements PedidoService {
 	public Pedido updatePedido(Integer idPedido, Pedido nuevoPedido) throws PedidoNoEncontradoException {
 
 		if (idPedido.equals(nuevoPedido.getId())) {
-			if (pedidoRepositoryInMemory.existsById(idPedido)) {
+			if (pedidoRepository.existsById(idPedido)) {
 				// OJO porque esto reescribe totalmente el pedido antiguo. Si hay atributos
 				// nulos, los borrara.
-				return pedidoRepositoryInMemory.save(nuevoPedido);
+				return pedidoRepository.save(nuevoPedido);
 			}
 			throw new PedidoNoEncontradoException("Pedido inexistente.");
 		}
@@ -127,10 +128,10 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public Pedido deletePedidoById(Integer idPedido) throws PedidoNoEncontradoException {
 
-		Optional<Pedido> ped = pedidoRepositoryInMemory.findById(idPedido);
+		Optional<Pedido> ped = pedidoRepository.findById(idPedido);
 		if (ped.isPresent()) {
 
-			pedidoRepositoryInMemory.delete(ped.get());
+			pedidoRepository.delete(ped.get());
 
 			return ped.get();
 		}
@@ -141,7 +142,7 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public Pedido deleteDetallePedidoPedidoById(Integer idPedido, Integer idDetalle)
 			throws DetallePedidoNoEncontradoException, PedidoNoEncontradoException {
-		Optional<Pedido> ped = pedidoRepositoryInMemory.findById(idPedido);
+		Optional<Pedido> ped = pedidoRepository.findById(idPedido);
 		if (ped.isPresent()) {
 			Pedido p = ped.get();
 			Optional<DetallePedido> det = p.getDetalle().stream().filter(dp -> dp.getId().equals(idDetalle))
@@ -149,7 +150,7 @@ public class PedidoServiceImpl implements PedidoService {
 			if (det.isPresent()) {
 				p.getDetalle().remove(det.get());
 				// TODO habria que eliminar de la "tabla" DetallePedido en una futura BD?
-				return pedidoRepositoryInMemory.save(p);
+				return pedidoRepository.save(p);
 			}
 			throw new DetallePedidoNoEncontradoException("Detalle de pedido inexistente.");
 		}
@@ -159,7 +160,7 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public Pedido getPedidoByID(Integer idPedido) throws PedidoNoEncontradoException {
 
-		Optional<Pedido> p = pedidoRepositoryInMemory.findById(idPedido);
+		Optional<Pedido> p = pedidoRepository.findById(idPedido);
 		if (p.isPresent()) {
 			return p.get();
 		}
@@ -169,7 +170,7 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public List<Pedido> getPedidoByIdObra(Integer idObra) throws PedidoNoEncontradoException {
 		List<Pedido> listaPedidos = new ArrayList<>();
-		pedidoRepositoryInMemory.findAll().forEach(p -> listaPedidos.add(p));
+		pedidoRepository.findAll().forEach(p -> listaPedidos.add(p));
 		List<Pedido> pedidos = listaPedidos.stream().filter(p -> p.getObra().getId().equals(idObra))
 				.collect(Collectors.toList());
 		if (!pedidos.isEmpty()) {
@@ -180,11 +181,17 @@ public class PedidoServiceImpl implements PedidoService {
 	}
 
 	@Override
-	public List<Pedido> getPedidosByClientParams(Integer idCliente, String cuitCliente)
+	public List<Pedido> getPedidosByClientParams(Integer idCliente, String cuitCliente, String estadoPedido)
 			throws PedidoNoEncontradoException, ObraNoEncontradaException {
 		
 		List<Pedido> listaPedidos = new ArrayList<>();
-		pedidoRepositoryInMemory.findAll().forEach(p -> listaPedidos.add(p));
+		if(!estadoPedido.isBlank()) {
+			listaPedidos = pedidoRepository.findByEstadoEstado(estadoPedido);
+		}
+		else {
+			listaPedidos = pedidoRepository.findAll();
+		}
+		
 		String queryString = "";
 
 		if (idCliente.equals(0) && cuitCliente.isBlank()) {
@@ -233,7 +240,7 @@ public class PedidoServiceImpl implements PedidoService {
 	public DetallePedido getDetallePedidoById(Integer idPedido, Integer id)
 			throws DetallePedidoNoEncontradoException, PedidoNoEncontradoException {
 		
-		Optional<Pedido> ped = pedidoRepositoryInMemory.findById(idPedido);
+		Optional<Pedido> ped = pedidoRepository.findById(idPedido);
 		if (ped.isPresent()) {
 			Pedido p = ped.get();
 			Optional<DetallePedido> det = p.getDetalle().stream().filter(dp -> dp.getId().equals(id))
@@ -245,5 +252,10 @@ public class PedidoServiceImpl implements PedidoService {
 			throw new DetallePedidoNoEncontradoException("Detalle de pedido inexistente.");
 		}
 		throw new PedidoNoEncontradoException("Pedido inexistente.");
+	}
+
+	@Override
+	public EstadoPedido getEstadoNuevoPedido(String string) {
+		return estadoPedidoService.findByEstado("NUEVO");
 	}
 }
