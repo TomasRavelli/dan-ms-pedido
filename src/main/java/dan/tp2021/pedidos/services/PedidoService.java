@@ -32,5 +32,5 @@ public interface PedidoService {
 
 	public DetallePedido getDetallePedidoById(Integer idPedido, Integer id)throws DetallePedidoNoEncontradoException, PedidoNoEncontradoException;
 
-	public EstadoPedido getEstadoNuevoPedido(String string);
+	public EstadoPedido getEstadoPedido(String string);
 }

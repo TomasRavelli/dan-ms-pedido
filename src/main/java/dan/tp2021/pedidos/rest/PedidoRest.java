@@ -48,7 +48,7 @@ public class PedidoRest {
 	public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido) {
 		logger.debug("Entra al post");
 		
-		nuevoPedido.setEstado(pedidoServiceImpl.getEstadoNuevoPedido("NUEVO"));//el estado del pedido siempre es NUEVO al crear, busco este estado en la BD.
+		nuevoPedido.setEstado(pedidoServiceImpl.getEstadoPedido("NUEVO"));//el estado del pedido siempre es NUEVO al crear, busco este estado en la BD.
 		
 		logger.debug("Estado del pedido: " + nuevoPedido.getEstado().getEstado());
 		

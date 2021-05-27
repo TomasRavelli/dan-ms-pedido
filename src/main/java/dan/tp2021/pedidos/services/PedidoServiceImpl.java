@@ -76,9 +76,9 @@ public class PedidoServiceImpl implements PedidoService {
 		if (!esDeudor || condicionC) {
 
 			if (stockDisponible) {
-				p.setEstado(estadoPedidoService.findByEstado("ACEPTADO"));
+				p.setEstado(this.getEstadoPedido("ACEPTADO"));
 			} else {
-				p.setEstado(estadoPedidoService.findByEstado("PENDIENTE"));
+				p.setEstado(this.getEstadoPedido("PENDIENTE"));
 			}
 
 			p.setFechaPedido(Instant.now());//Esta bien? Segun la guia 6 va la fecha de envio solicitada por el cliente.
@@ -255,7 +255,7 @@ public class PedidoServiceImpl implements PedidoService {
 	}
 
 	@Override
-	public EstadoPedido getEstadoNuevoPedido(String string) {
-		return estadoPedidoService.findByEstado("NUEVO");
+	public EstadoPedido getEstadoPedido(String estado) {
+		return estadoPedidoService.findByEstado(estado);
 	}
 }
