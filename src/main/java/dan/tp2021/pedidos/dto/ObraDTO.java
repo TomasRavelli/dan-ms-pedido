@@ -3,7 +3,7 @@ package dan.tp2021.pedidos.dto;
 public class ObraDTO {
 	
 	private Integer id;
-	private Integer idCliente;
+	private ClienteDTO cliente;
 	public ObraDTO() {
 	}
 
@@ -20,11 +20,11 @@ public class ObraDTO {
 	}
 
 
-	public Integer getIdCliente() {
-		return idCliente;
+	public ClienteDTO getCliente() {
+		return cliente;
 	}
 
-	public void setIdCliente(Integer idCliente) {
-		this.idCliente = idCliente;
+	public void setCliente(ClienteDTO c) {
+		this.cliente = c;
 	}
 }

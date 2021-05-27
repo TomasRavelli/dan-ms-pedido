@@ -2,6 +2,8 @@ package dan.tp2021.pedidos.services;
 
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,11 +16,11 @@ import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
 
 @Service
 public class ObraServiceImpl implements ObraService {
-
+	private static final Logger logger = LoggerFactory.getLogger(ObraServiceImpl.class);
 	@Override
 	public List<ObraDTO> getObrasByClienteParams(String s) throws ObraNoEncontradaException, HttpServerErrorException {
-
-		WebClient client = WebClient.create("http://localhost:8080/api/obra");
+		logger.debug("Entra a buscar la obra");
+		WebClient client = WebClient.create("http://localhost:9000/api/obra");
 		
 		ResponseEntity<List<ObraDTO>> response = client
 													.get()
@@ -30,7 +32,7 @@ public class ObraServiceImpl implements ObraService {
 
 		
 		if (response != null && response.getStatusCode() == HttpStatus.OK) {
-			System.out.println("Respuesta exitosa de la api de obras: \n" + response);
+			logger.debug("Obras buscadas. Size: " + response.getBody().size());
 			if (!response.getBody().isEmpty()) {
 				return response.getBody();
 			}
