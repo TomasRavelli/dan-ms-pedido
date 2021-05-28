@@ -27,9 +27,9 @@ public class Pedido {
 //	@JoinColumn(name = "ID_PEDIDO")
 	private List<DetallePedido> detalle;
 	
-	@ManyToOne(cascade = CascadeType.ALL)
+	@ManyToOne
 //	@JoinColumn(name = "ID_ESTADO_PEDIDO")
-	private EstadoPedido estado; //Lo podriamoss tener precargados en la BD.
+	private EstadoPedido estado; //Lo tenemos precargados en la BD.
 	
 	public Integer getId() {
 		return id;
