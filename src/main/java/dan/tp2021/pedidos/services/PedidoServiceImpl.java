@@ -47,7 +47,7 @@ public class PedidoServiceImpl implements PedidoService {
 	EstadoPedidoService estadoPedidoService;
 
 	@Autowired
-	JmsTemplate jms;
+	MessageService messageService;
 
 	@Override
 	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
@@ -92,14 +92,8 @@ public class PedidoServiceImpl implements PedidoService {
 			logger.debug("ID material del primer detalle pedido: " + p.getDetalle().get(0).getProducto().getId());
 
 			Pedido aux = pedidoRepository.save(p);
-			logger.debug("NUEVO PEDIDO RETORNADO DE LA DB: "+aux);
+			messageService.sendMessageToProductos(aux);
 
-			//TODO con los cambios de la guía 6, el mensaje asincrónico debería enviarse cuando el pedido pasa a estado CONFIRMADO.
-			ArrayList<Integer> idDetalles = new ArrayList<>();
-			for(DetallePedido d: aux.getDetalle()){
-				idDetalles.add(d.getId());
-			}
-			jms.convertAndSend("COLA_PEDIDOS",idDetalles);
 			return aux;
 
 		} else {

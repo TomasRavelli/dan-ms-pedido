@@ -9,6 +9,7 @@ import dan.tp2021.pedidos.dao.EstadoPedidoRepository;
 import dan.tp2021.pedidos.dao.PedidoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -23,6 +24,7 @@ import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.EstadoPedidoService;
+import dan.tp2021.pedidos.services.MessageService;
 import dan.tp2021.pedidos.services.PedidoService;
 
 @SpringBootTest
@@ -44,6 +46,9 @@ class PedidoServiceUnitTest {
 
 	@MockBean
 	BancoService bancoService;
+	
+	@MockBean
+	MessageService messageServiceMock;
 
 	Pedido unPedido;
 
@@ -67,6 +72,7 @@ class PedidoServiceUnitTest {
 		clienteDTO = new ClienteDTO();
 		clienteDTO.setSaldoActual(2500d);
 		clienteDTO.setMaxCuentaOnline(5000d);
+		Mockito.doNothing().when(messageServiceMock).sendMessageToProductos(any(Pedido.class));
 	}
 
 	@Test
@@ -82,7 +88,8 @@ class PedidoServiceUnitTest {
 		when(estadoPedidoService.findByEstado("NUEVO")).thenReturn(new EstadoPedido(1, "NUEVO"));
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
-
+		
+		
 		Pedido pedidoResultado;
 
 		try {
@@ -142,7 +149,7 @@ class PedidoServiceUnitTest {
 		when(estadoPedidoService.findByEstado("NUEVO")).thenReturn(new EstadoPedido(1, "NUEVO"));
 		// retorno el pedido
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
-
+		
 		try {
 
 			Pedido resultado = pedidoService.savePedido(unPedido);
