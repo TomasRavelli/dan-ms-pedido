@@ -62,5 +62,14 @@ public class Pedido {
 		this.estado = estado;
 	}
 
-	
+	@Override
+	public String toString() {
+		return "Pedido{" +
+				"id=" + id +
+				", fechaPedido=" + fechaPedido +
+				", obra=" + obra +
+				", detalle=" + detalle +
+				", estado=" + estado +
+				'}';
+	}
 }

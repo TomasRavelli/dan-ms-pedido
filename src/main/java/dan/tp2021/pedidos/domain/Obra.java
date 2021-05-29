@@ -12,8 +12,7 @@ import javax.persistence.Table;
 public class Obra {
 	
 	@Id
-//	@GeneratedValue(strategy = GenerationType.IDENTITY)
-//	@Column(name = "ID_OBRA")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer id;
 	private String descripcion;
 
