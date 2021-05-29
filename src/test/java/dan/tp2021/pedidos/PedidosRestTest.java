@@ -11,9 +11,11 @@ import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.EstadoPedidoService;
+import dan.tp2021.pedidos.services.MessageService;
 import dan.tp2021.pedidos.services.PedidoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -29,6 +31,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -61,6 +64,9 @@ public class PedidosRestTest {
 	
 	@MockBean
 	EstadoPedidoService estadoPedidoService; 
+	
+	@MockBean
+	MessageService messageServiceMock;
 
 	@BeforeEach
 	void setUp() {
@@ -96,6 +102,8 @@ public class PedidosRestTest {
 		when(estadoPedidoService.findByEstado("ACEPTADO")).thenReturn(new EstadoPedido(5, "ACEPTADO"));
 		when(estadoPedidoService.findByEstado("PENDIENTE")).thenReturn(new EstadoPedido(3, "PENDIENTE"));
 		when(estadoPedidoService.findByEstado("NUEVO")).thenReturn(new EstadoPedido(1, "NUEVO"));
+
+		Mockito.doNothing().when(messageServiceMock).sendMessageToProductos(any(Pedido.class));
 
 	}
 
