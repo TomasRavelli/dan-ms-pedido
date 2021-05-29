@@ -47,13 +47,13 @@ public class PedidoRest {
 	@PostMapping
 	public ResponseEntity<Pedido> crearPedido(@RequestBody Pedido nuevoPedido) {
 		logger.debug("Entra al post");
-		
-		nuevoPedido.setEstado(pedidoServiceImpl.getEstadoPedido("NUEVO"));//el estado del pedido siempre es NUEVO al crear, busco este estado en la BD.
-		
-		logger.debug("Estado del pedido: " + nuevoPedido.getEstado().getEstado());
-		
+
 		if (nuevoPedido != null && nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null
 				&& nuevoPedido.getDetalle().size() > 0) {
+
+			nuevoPedido.setEstado(pedidoServiceImpl.getEstadoPedido("NUEVO"));//el estado del pedido siempre es NUEVO al crear, busco este estado en la BD.
+
+			logger.debug("Estado del pedido: " + nuevoPedido.getEstado().getEstado());
 			
 			for (DetallePedido d : nuevoPedido.getDetalle()) {
 				if (d.getCantidad() == null || d.getProducto() == null) {
@@ -90,6 +90,8 @@ public class PedidoRest {
 		return ResponseEntity.badRequest().build();
 
 	}
+
+	//TODO agregar un endpoint PATCH que solo permitq actualizar el estado del pedido.
 
 	@ApiOperation("Agregar un item a un pedido existente")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Item agregado exitosamente"),
