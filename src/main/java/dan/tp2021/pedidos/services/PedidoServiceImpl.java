@@ -49,7 +49,7 @@ public class PedidoServiceImpl implements PedidoService {
 	EstadoPedidoService estadoPedidoService;
 
 	@Autowired
-	JmsTemplate jms;
+	MessageService messageService;
 
 	@Override
 	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
@@ -97,20 +97,9 @@ public class PedidoServiceImpl implements PedidoService {
 			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y
 			// lanzamos otra excepción más "linda"?
 
-			/*HashMap<String, Integer> detalles = new HashMap<>();
-			for(DetallePedido d: p.getDetalle()){
-				detalles.put(d.getProducto().getId().toString(),d.getCantidad());
-				//Al id lo mando como String porque el mensaje necesita un hashmap con la key en String
-			}
-			jms.convertAndSend("COLA_PEDIDOS",detalles);*/
-
 			Pedido aux = pedidoRepository.save(p);
-			logger.debug("NUEVO PEDIDO RETORNADO DE LA DB: "+aux.toString());
-			ArrayList<Integer> idDetalles = new ArrayList<>();
-			for(DetallePedido d: aux.getDetalle()){
-				idDetalles.add(d.getId());
-			}
-			jms.convertAndSend("COLA_PEDIDOS",idDetalles);
+			messageService.sendMessageToProductos(aux);
+			
 			return aux;
 
 		} else {
