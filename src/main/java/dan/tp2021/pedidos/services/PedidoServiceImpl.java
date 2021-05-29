@@ -33,8 +33,6 @@ public class PedidoServiceImpl implements PedidoService {
 	private static final Logger logger = LoggerFactory.getLogger(PedidoServiceImpl.class);
 
 	@Autowired
-//	PedidoRepositoryInMemory pedidoRepositoryInMemory;
-//	PedidoH2Repository pedidoRepositoryInMemory;
 	PedidoRepository pedidoRepository;
 	@Autowired
 	ClienteService clienteServiceImpl;
@@ -54,7 +52,9 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
 
-		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p); //TODO aqui podriamos llamar a ObraService para que guarde la obra en la BD y asi establecer la relacion.
+		//TODO El pedido se guarda inicialmente con el estado NUEVO, hay que cambiar varias cosas en este método.
+
+		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p);
 		// Si llegamos acá quiere decir que no hubo error, porque cuando hay error se
 		// lanza una excepción y la ejecución se corta.
 
@@ -86,26 +86,15 @@ public class PedidoServiceImpl implements PedidoService {
 				p.setEstado(this.getEstadoPedido("PENDIENTE"));
 			}
 
-			p.setFechaPedido(Instant.now());//Esta bien? Segun la guia 6 va la fecha de envio solicitada por el cliente.
-			// TODO ver que hacer si otras implementaciones de este método lanzan excepciones.
-			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y lanzamos otra excepción más "linda"?
+			p.setFechaPedido(Instant.now());
 
 			logger.debug("Material del primer detalle pedido?: " + p.getDetalle().get(0).getProducto());
 			logger.debug("ID material del primer detalle pedido: " + p.getDetalle().get(0).getProducto().getId());
-			// TODO ver que hacer si otras implementaciones de este método lanzan
-			// excepciones.
-			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y
-			// lanzamos otra excepción más "linda"?
-
-			/*HashMap<String, Integer> detalles = new HashMap<>();
-			for(DetallePedido d: p.getDetalle()){
-				detalles.put(d.getProducto().getId().toString(),d.getCantidad());
-				//Al id lo mando como String porque el mensaje necesita un hashmap con la key en String
-			}
-			jms.convertAndSend("COLA_PEDIDOS",detalles);*/
 
 			Pedido aux = pedidoRepository.save(p);
-			logger.debug("NUEVO PEDIDO RETORNADO DE LA DB: "+aux.toString());
+			logger.debug("NUEVO PEDIDO RETORNADO DE LA DB: "+aux);
+
+			//TODO con los cambios de la guía 6, el mensaje asincrónico debería enviarse cuando el pedido pasa a estado CONFIRMADO.
 			ArrayList<Integer> idDetalles = new ArrayList<>();
 			for(DetallePedido d: aux.getDetalle()){
 				idDetalles.add(d.getId());
@@ -115,8 +104,7 @@ public class PedidoServiceImpl implements PedidoService {
 
 		} else {
 			//TODO preguntar si aca no hay que guardar igual el pedido con estado RECHAZADO.
-			throw new ClienteNoHabilitadoException(
-					"Error. El cliente no cumple con las condiciones para adquirir el pedido");
+			throw new ClienteNoHabilitadoException("Error. El cliente no cumple con las condiciones para adquirir el pedido");
 		}
 
 	}
@@ -125,7 +113,7 @@ public class PedidoServiceImpl implements PedidoService {
 	public Pedido addItem(Integer idPedido, DetallePedido detalle) throws PedidoNoEncontradoException {
 
 		Optional<Pedido> p = pedidoRepository.findById(idPedido);
-
+		//TODO verificar que el pedido esté en estado NUEVO antes de agregar el detalle.
 		if (p.isPresent()) {
 			Pedido ped = p.get();
 			ped.getDetalle().add(detalle);
@@ -137,7 +125,7 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Override
 	public Pedido updatePedido(Integer idPedido, Pedido nuevoPedido) throws PedidoNoEncontradoException {
-
+		//TODO verificar que no se esté intentando cambiar la obra, eso no está permitido.
 		if (idPedido.equals(nuevoPedido.getId())) {
 			if (pedidoRepository.existsById(idPedido)) {
 				// OJO porque esto reescribe totalmente el pedido antiguo. Si hay atributos
@@ -151,7 +139,7 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Override
 	public Pedido deletePedidoById(Integer idPedido) throws PedidoNoEncontradoException {
-
+		//TODO el pedido se elimina o se cambia a estado CANCELADO?
 		Optional<Pedido> ped = pedidoRepository.findById(idPedido);
 		if (ped.isPresent()) {
 
@@ -166,6 +154,7 @@ public class PedidoServiceImpl implements PedidoService {
 	@Override
 	public Pedido deleteDetallePedidoPedidoById(Integer idPedido, Integer idDetalle)
 			throws DetallePedidoNoEncontradoException, PedidoNoEncontradoException {
+		//TODO cuándo se podrían eliminar detalles? Solo cuando el pedido está en estado NUEVO?
 		Optional<Pedido> ped = pedidoRepository.findById(idPedido);
 		if (ped.isPresent()) {
 			Pedido p = ped.get();
@@ -173,7 +162,6 @@ public class PedidoServiceImpl implements PedidoService {
 					.findFirst();
 			if (det.isPresent()) {
 				p.getDetalle().remove(det.get());
-				// TODO habria que eliminar de la "tabla" DetallePedido en una futura BD?
 				return pedidoRepository.save(p);
 			}
 			throw new DetallePedidoNoEncontradoException("Detalle de pedido inexistente.");
@@ -193,8 +181,7 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Override
 	public List<Pedido> getPedidoByIdObra(Integer idObra) throws PedidoNoEncontradoException {
-		List<Pedido> listaPedidos = new ArrayList<>();
-		pedidoRepository.findAll().forEach(p -> listaPedidos.add(p));
+		List<Pedido> listaPedidos = pedidoRepository.findAll();
 		List<Pedido> pedidos = listaPedidos.stream().filter(p -> p.getObra().getId().equals(idObra))
 				.collect(Collectors.toList());
 		if (!pedidos.isEmpty()) {
@@ -206,13 +193,12 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Override
 	public List<Pedido> getPedidosByClientParams(Integer idCliente, String cuitCliente, String estadoPedido)
-			throws PedidoNoEncontradoException, ObraNoEncontradaException {
+			throws ObraNoEncontradaException {
 		
-		List<Pedido> listaPedidos = new ArrayList<>();
+		List<Pedido> listaPedidos;
 		if(!estadoPedido.isBlank()) {
 			listaPedidos = pedidoRepository.findByEstadoEstado(estadoPedido);
-		}
-		else {
+		} else {
 			listaPedidos = pedidoRepository.findAll();
 		}
 
@@ -240,13 +226,6 @@ public class PedidoServiceImpl implements PedidoService {
 		List<Pedido> pedidosFiltrados = filtrarPedidos(listaPedidos, obrasDTO); //Filtrar por pedidos que tengan las obras traidas.
 
 		return pedidosFiltrados;
-		/*
-			if (!pedidosFiltrados.isEmpty()) {
-				return pedidosFiltrados;
-			}
-			throw new PedidoNoEncontradoException("No se encontraron pedidos que cumplan con estos criterios.");*/
-		
-
 	}
 
 	private List<Pedido> filtrarPedidos(List<Pedido> listaPedidos, List<ObraDTO> obrasDTO) {
