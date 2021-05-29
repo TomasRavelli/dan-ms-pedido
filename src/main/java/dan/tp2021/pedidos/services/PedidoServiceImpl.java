@@ -2,6 +2,7 @@ package dan.tp2021.pedidos.services;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 
@@ -27,7 +29,7 @@ import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
-	
+
 	private static final Logger logger = LoggerFactory.getLogger(PedidoServiceImpl.class);
 
 	@Autowired
@@ -42,17 +44,20 @@ public class PedidoServiceImpl implements PedidoService {
 
 	@Autowired
 	ObraService obraServiceImpl;
-	
+
 	@Autowired
 	EstadoPedidoService estadoPedidoService;
+
+	@Autowired
+	JmsTemplate jms;
 
 	@Override
 	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
 
-		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p); //TODO aqui podriamos llamar a ObraService para que guarde la obra en la BD y asi establecer la relacion. 
+		ClienteDTO clienteDTO = clienteServiceImpl.getClienteByObra(p); //TODO aqui podriamos llamar a ObraService para que guarde la obra en la BD y asi establecer la relacion.
 		// Si llegamos acá quiere decir que no hubo error, porque cuando hay error se
 		// lanza una excepción y la ejecución se corta.
-		
+
 		logger.debug("Cliente buscado, ID: "+clienteDTO.getId());
 		double sumaCostosProductos = 0;
 		boolean stockDisponible = true;
@@ -87,7 +92,26 @@ public class PedidoServiceImpl implements PedidoService {
 
 			logger.debug("Material del primer detalle pedido?: " + p.getDetalle().get(0).getProducto());
 			logger.debug("ID material del primer detalle pedido: " + p.getDetalle().get(0).getProducto().getId());
-			return pedidoRepository.save(p);
+			// TODO ver que hacer si otras implementaciones de este método lanzan
+			// excepciones.
+			// Las lanzamos hacia arriba y que se encarque el controller? O la capturamos y
+			// lanzamos otra excepción más "linda"?
+
+			/*HashMap<String, Integer> detalles = new HashMap<>();
+			for(DetallePedido d: p.getDetalle()){
+				detalles.put(d.getProducto().getId().toString(),d.getCantidad());
+				//Al id lo mando como String porque el mensaje necesita un hashmap con la key en String
+			}
+			jms.convertAndSend("COLA_PEDIDOS",detalles);*/
+
+			Pedido aux = pedidoRepository.save(p);
+			logger.debug("NUEVO PEDIDO RETORNADO DE LA DB: "+aux.toString());
+			ArrayList<Integer> idDetalles = new ArrayList<>();
+			for(DetallePedido d: aux.getDetalle()){
+				idDetalles.add(d.getId());
+			}
+			jms.convertAndSend("COLA_PEDIDOS",idDetalles);
+			return aux;
 
 		} else {
 			//TODO preguntar si aca no hay que guardar igual el pedido con estado RECHAZADO.
@@ -191,7 +215,7 @@ public class PedidoServiceImpl implements PedidoService {
 		else {
 			listaPedidos = pedidoRepository.findAll();
 		}
-		
+
 		String queryString = "";
 
 		if (idCliente.equals(0) && cuitCliente.isBlank()) {
