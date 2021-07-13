@@ -2,12 +2,14 @@ package dan.tp2021.pedidos.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import dan.tp2021.pedidos.config.UsuarioRestProperties;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
@@ -18,12 +20,19 @@ public class ClienteServiceImpl implements ClienteService{
 
 	private static final Logger logger = LoggerFactory.getLogger(ClienteServiceImpl.class);
 	
+	@Autowired
+	UsuarioRestProperties usuarioRestProperties;
+	
 	@Override
 	public ClienteDTO getClienteByObra(Pedido p) throws ClienteException{
 		
 		// Buscar en el servicio Usuario la obra, para encontrar a que cliente
 		// pertenece.
-		WebClient client = WebClient.create("http://localhost:9000/api");
+		
+		String url = usuarioRestProperties.getUrl();
+		logger.debug("Url de pedidos: " + url);
+		
+		WebClient client = WebClient.create(url + "/api");
 		
 		ResponseEntity<ObraDTO> response = client.get()
 				.uri("/obra/"+p.getObra().getId())
