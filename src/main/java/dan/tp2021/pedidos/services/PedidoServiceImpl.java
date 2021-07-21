@@ -217,6 +217,9 @@ public class PedidoServiceImpl implements PedidoService {
 		}
 		
 		List<ObraDTO> obrasDTO = obraServiceImpl.getObrasByClienteParams(queryString); //Buscar obras al microservicio usuarios.
+		if(obrasDTO==null) {
+			throw new ObraNoEncontradaException("No se encontraron obras");
+		}
 		List<Pedido> pedidosFiltrados = filtrarPedidos(listaPedidos, obrasDTO); //Filtrar por pedidos que tengan las obras traidas.
 
 		return pedidosFiltrados;

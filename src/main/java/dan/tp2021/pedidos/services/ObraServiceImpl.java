@@ -1,10 +1,13 @@
 package dan.tp2021.pedidos.services;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,30 +25,44 @@ public class ObraServiceImpl implements ObraService {
 	@Autowired
 	UsuarioRestProperties usuarioRestProperties;
 
+	@Autowired
+	private CircuitBreakerFactory circuitBreakerFactory;
+
 	@Override
 	public List<ObraDTO> getObrasByClienteParams(String s) throws ObraNoEncontradaException, HttpServerErrorException {
-		
+
 		logger.debug("Entra a buscar la obra");
-		
+
 		String url = usuarioRestProperties.getUrl();
 		logger.debug("Url de pedidos: " + url);
-		
+
 		WebClient client = WebClient.create(url + "/api/obra");
 
-		ResponseEntity<List<ObraDTO>> response = client.get().uri(s).accept(MediaType.APPLICATION_JSON).retrieve()
-				.toEntityList(ObraDTO.class).block();
+		CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
 
-		if (response != null && response.getStatusCode() == HttpStatus.OK) {
-			logger.debug("Obras buscadas. Size: " + response.getBody().size());
-			if (!response.getBody().isEmpty()) {
-				return response.getBody();
+		return circuitBreaker.run(() -> {
+			ResponseEntity<List<ObraDTO>> response = client.get().uri(s).accept(MediaType.APPLICATION_JSON).retrieve()
+					.toEntityList(ObraDTO.class).block();
+
+			if (response != null && response.getStatusCode() == HttpStatus.OK) {
+				logger.debug("Obras buscadas. Size: " + response.getBody().size());
+				if (!response.getBody().isEmpty()) {
+					return response.getBody();
+				}
+
+//				throw new ObraNoEncontradaException("No se encontraron obras");
+				return null;
 			}
 
-			throw new ObraNoEncontradaException("No se encontraron obras");
-		}
+			throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR,
+					"Error al buscar datos en microservicio usuarios");
+		}, throwable -> defaultObrasDTO());
 
-		throw new HttpServerErrorException(HttpStatus.INTERNAL_SERVER_ERROR,
-				"Error al buscar datos en microservicio usuarios");
+	}
+
+	private List<ObraDTO> defaultObrasDTO() {
+		logger.debug("Entra a defaultObrasDTO. Se abrio el circuito");
+		return new ArrayList<ObraDTO>();
 	}
 
 }
