@@ -9,7 +9,7 @@ pipeline {
             }
             steps {
                 bat "java -version"
-                bat "./mvnw clean"
+                bat "./mvnw clean -Ddockerfile.skip"
             }
         }
         stage('clean-develop') {
@@ -18,19 +18,19 @@ pipeline {
             }
             steps {
                 bat "java -version"
-                bat "./mvnw clean"
+                bat "./mvnw clean -Ddockerfile.skip"
                 bat "echo buildeando develop"
             }
         }
         stage('backend tests') {
             steps {
-                bat "./mvnw verify"
+                bat "./mvnw verify -Ddockerfile.skip"
                 bat "echo 'configurar para ejecutar los tests'"
             }
         }
         stage('Analisis estatico') {
             steps {
-                bat "./mvnw site"
+                bat "./mvnw site -Ddockerfile.skip"
                 bat "./mvnw checkstyle:checkstyle pmd:pmd pmd:cpd spotbugs:spotbugs"
             }
         }
