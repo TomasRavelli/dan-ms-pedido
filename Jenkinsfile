@@ -31,7 +31,7 @@ pipeline {
         stage('Analisis estatico') {
             steps {
                 bat "./mvnw site -Ddockerfile.skip"
-                bat "./mvnw checkstyle:checkstyle pmd:pmd pmd:cpd spotbugs:spotbugs"
+                bat "./mvnw checkstyle:checkstyle pmd:pmd pmd:cpd spotbugs:spotbugs -Ddockerfile.skip"
             }
         }
 
