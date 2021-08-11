@@ -21,6 +21,7 @@ import org.springframework.web.client.HttpClientErrorException;
 
 import dan.tp2021.pedidos.domain.DetallePedido;
 import dan.tp2021.pedidos.domain.Pedido;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteBadRequestException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
@@ -67,11 +68,25 @@ public class PedidoRest {
 				logger.info("ID NUEVA ENTIDAD: "+ rep.getId());
 				return ResponseEntity.ok(rep);
 
-			} catch (ClienteNoHabilitadoException e) {
+			}
+			catch (ObraNoEncontradaException e) {
+				// Error, el cliente no está habilitado Responde 400?
+				logger.warn("Error al buscar cliente. Mensaje: "+ e.getMessage(), e);
+				return ResponseEntity.notFound().build();
+			}
+			catch (ClienteNoHabilitadoException e) {
 				// Error, el cliente no está habilitado Responde 400?
 				logger.warn("Cliente no habilitado. Mensaje: "+ e.getMessage(), e);
 				return ResponseEntity.badRequest().build();
-			} catch (ClienteException e) {
+			}
+			catch (ClienteBadRequestException e) {
+				// Respondo Internal server error (500) porque me parece que esto no es un
+				// problema de los datos que mandó el cliente.
+
+				logger.error("Cliente bad request exception. Mensaje: "+ e.getMessage(), e);
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+			}
+			catch (ClienteException e) {
 				// Respondo Internal server error (500) porque me parece que esto no es un
 				// problema de los datos que mandó el cliente.
 

@@ -21,6 +21,7 @@ import dan.tp2021.pedidos.domain.EstadoPedido;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteBadRequestException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
@@ -50,7 +51,7 @@ public class PedidoServiceImpl implements PedidoService {
 	MessageService messageService;
 
 	@Override
-	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException {
+	public Pedido savePedido(Pedido p) throws ClienteNoHabilitadoException, ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 
 		//TODO El pedido se guarda inicialmente con el estado NUEVO, hay que cambiar varias cosas en este método.
 

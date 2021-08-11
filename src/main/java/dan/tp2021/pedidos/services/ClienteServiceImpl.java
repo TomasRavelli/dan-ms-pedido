@@ -11,12 +11,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
+
 import dan.tp2021.pedidos.config.UsuarioRestProperties;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.dto.ClienteDTO;
 import dan.tp2021.pedidos.dto.ObraDTO;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteBadRequestException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
+import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
 
 @Service
 public class ClienteServiceImpl implements ClienteService {
@@ -30,7 +36,7 @@ public class ClienteServiceImpl implements ClienteService {
 	private CircuitBreakerFactory circuitBreakerFactory;
 
 	@Override
-	public ClienteDTO getClienteByObra(Pedido p) throws ClienteException {
+	public ClienteDTO getClienteByObra(Pedido p) throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 
 		// Buscar en el servicio Usuario la obra, para encontrar a que cliente
 		// pertenece.
@@ -39,45 +45,72 @@ public class ClienteServiceImpl implements ClienteService {
 		logger.debug("Url de pedidos: " + url);
 
 		WebClient client = WebClient.create(url + "/api");
+		
+		//Si el circuit breaker se abre, decidimos que se lance igualmente una excepcion 
+		//porque no se puede crear el pedido sin tener los datos validos.
 		CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitbreaker");
 
-		return circuitBreaker.run(() -> {
-			ResponseEntity<ObraDTO> response = client.get().uri("/obra/" + p.getObra().getId())
+		ResponseEntity<ObraDTO> response = circuitBreaker.run(() -> {
+			return client.get().uri("/obra/" + p.getObra().getId())
 					.accept(MediaType.APPLICATION_JSON).retrieve().toEntity(ObraDTO.class).block();
-			logger.debug("Status response from api obra: " + response.getStatusCodeValue());
-			if (response.getStatusCode().equals(HttpStatus.OK)) {
+		}, throwable -> defaultObra(throwable));
+		
+		if (response.getStatusCode().equals(HttpStatus.OK)) {
+			// TODO ver si se puede arreglar para que no entre dos veces a la API de
+			// cliente.
+			// Esto sucede porque el JSON no tiene un cliente asociado.
+			// Podemos hacer que se pueda buscar clietnes por id de obra...
 
-				// TODO ver si se puede arreglar para que no entre dos veces a la API de
-				// cliente.
-				// Esto sucede porque el JSON no tiene un cliente asociado.
-				// Podemos hacer que se pueda buscar clietnes por id de obra...
+			// Buscar los datos del cliente en el servicio de usuarios.
 
-				// Buscar los datos del cliente en el servicio de usuarios.
+			logger.debug("ID obra buscada: " + response.getBody().getId());
+			ObraDTO obra = response.getBody();
 
-				logger.debug("ID obra buscada: " + response.getBody().getId());
-				ObraDTO obra = response.getBody();
-
-				ResponseEntity<ClienteDTO> clienteResponse = client.get().uri("/cliente/" + obra.getCliente().getId())
+			ResponseEntity<ClienteDTO> clienteResponse = circuitBreaker.run(() -> {
+				return client.get().uri("/cliente/" + obra.getCliente().getId())
 						.accept(MediaType.APPLICATION_JSON).retrieve().toEntity(ClienteDTO.class).block();
-
-				if (clienteResponse.getStatusCode().equals(HttpStatus.OK)) {
-					return clienteResponse.getBody();
+			}, throwable -> defaultCliente(throwable));
+			
+			if (clienteResponse.getStatusCode().equals(HttpStatus.OK)) {
+				return clienteResponse.getBody();
+			}
+			else {
+				if (clienteResponse.getStatusCode().is4xxClientError()) {
+					throw new ClienteBadRequestException("Error en la comunicacion con el servicio de usuarios.");
 				}
 			}
-			// TODO podríamos hacer que se lanzen distintas exceptiones según que error
-			// recibimos de la API.
-			// Por ahora para todos los errores lanzamos la misma excepción.
-			//throw new ClienteException("Error al buscar al cliente");
-			return defaultCliente();
-		}, throwable -> defaultCliente());
+		}
+		else {
 
+			if(response.getStatusCode().is4xxClientError()) {
+				if(response.getStatusCode() == HttpStatus.NOT_FOUND) {
+					throw new ObraNoEncontradaException("Error. Obra no encontrada");
+				}
+				throw new ClienteBadRequestException("Error en la comunicacion con el servicio de usuarios.");
+			}
+		}
 		
+		throw new ClienteException("Error en la comunicacion con el servicio de usuarios.");
 
 	}
 
-	private ClienteDTO defaultCliente() {
+	private ResponseEntity<ClienteDTO> defaultCliente(Throwable throwable) {
 		logger.debug("Entra a defaultCliente. Se abrio el circuito");
-		return new ClienteDTO();
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+	}
+	
+	private ResponseEntity<ObraDTO> defaultObra(Throwable t) {
+		logger.debug("Entra a defaultObra. Se abrio el circuito");
+		logger.error(t.getClass().getName());
+		if(t instanceof WebClientResponseException.NotFound) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}
+		else {
+			if(t instanceof WebClientResponseException.BadRequest) {
+				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+			}
+		}
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 	}
 
 }
