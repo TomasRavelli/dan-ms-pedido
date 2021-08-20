@@ -19,7 +19,7 @@ public interface PedidoService {
 
 	public Pedido addItem(Integer idPedido, DetallePedido detalle) throws dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
 
-	public Pedido updatePedido(Integer idPedido, Pedido nuevoPedido) throws PedidoNoEncontradoException;
+	public Pedido updatePedido(Integer idPedido, Pedido nuevoPedido) throws PedidoNoEncontradoException, ClienteException, ObraNoEncontradaException, ClienteBadRequestException, ClienteNoHabilitadoException;
 
 	public Pedido deletePedidoById(Integer idPedido) throws PedidoNoEncontradoException;
 
