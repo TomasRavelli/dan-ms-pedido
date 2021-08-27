@@ -7,7 +7,9 @@ import dan.tp2021.pedidos.domain.Obra;
 import dan.tp2021.pedidos.domain.Pedido;
 import dan.tp2021.pedidos.domain.Producto;
 import dan.tp2021.pedidos.dto.ClienteDTO;
+import dan.tp2021.pedidos.exceptions.cliente.ClienteBadRequestException;
 import dan.tp2021.pedidos.exceptions.cliente.ClienteException;
+import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
 import dan.tp2021.pedidos.services.BancoService;
 import dan.tp2021.pedidos.services.ClienteService;
 import dan.tp2021.pedidos.services.EstadoPedidoService;
@@ -109,7 +111,7 @@ public class PedidosRestTest {
 
 	// crear pedido
 	@Test
-	void crearPedidoCorrecto() throws ClienteException {
+	void crearPedidoCorrecto() throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -121,7 +123,7 @@ public class PedidosRestTest {
 	}
 
 	@Test
-	void crearPedidoSinObra() throws ClienteException {
+	void crearPedidoSinObra() throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -134,7 +136,7 @@ public class PedidosRestTest {
 	}
 
 	@Test
-	void crearPedidoSinDetalles() throws ClienteException {
+	void crearPedidoSinDetalles() throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -147,7 +149,7 @@ public class PedidosRestTest {
 	}
 
 	@Test
-	void crearPedidoConDetallesSinContenido() throws ClienteException {
+	void crearPedidoConDetallesSinContenido() throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -160,7 +162,7 @@ public class PedidosRestTest {
 	}
 
 	@Test
-	void crearPedidoConUnDetalleSinProducto() throws ClienteException {
+	void crearPedidoConUnDetalleSinProducto() throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
@@ -173,7 +175,7 @@ public class PedidosRestTest {
 	}
 
 	@Test
-	void crearPedidoConUnDetalleSinCantidad() throws ClienteException {
+	void crearPedidoConUnDetalleSinCantidad() throws ClienteException, ObraNoEncontradaException, ClienteBadRequestException {
 		when(pedidoRepo.save(any(Pedido.class))).thenReturn(unPedido);
 		when(clienteService.getClienteByObra(any(Pedido.class))).thenReturn(clienteDTO);
 		when(bancoService.verificarSituacionCliente(any(ClienteDTO.class))).thenReturn(true);
