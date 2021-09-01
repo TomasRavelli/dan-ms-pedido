@@ -1,6 +1,5 @@
 package dan.tp2021.pedidos.rest;
 
-
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -50,12 +49,13 @@ public class PedidoRest {
 		logger.debug("Entra al post");
 
 		if (nuevoPedido != null && nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null
-				&& nuevoPedido.getDetalle().size() > 0) {
+				&& nuevoPedido.getDetalle().size() > 0 && nuevoPedido.getFechaPedido() != null) {
 
-			nuevoPedido.setEstado(pedidoServiceImpl.getEstadoPedido("NUEVO"));//el estado del pedido siempre es NUEVO al crear, busco este estado en la BD.
+			nuevoPedido.setEstado(pedidoServiceImpl.getEstadoPedido("NUEVO"));// el estado del pedido siempre es NUEVO
+																				// al crear, busco este estado en la BD.
 
 			logger.debug("Estado del pedido: " + nuevoPedido.getEstado().getEstado());
-			
+
 			for (DetallePedido d : nuevoPedido.getDetalle()) {
 				if (d.getCantidad() == null || d.getProducto() == null) {
 					return ResponseEntity.badRequest().build();
@@ -65,36 +65,32 @@ public class PedidoRest {
 			try {
 				Pedido rep = pedidoServiceImpl.savePedido(nuevoPedido);
 				// Si no hay excepción es que se guardó correctamente.
-				logger.info("ID NUEVA ENTIDAD: "+ rep.getId());
+				logger.info("ID NUEVA ENTIDAD: " + rep.getId());
 				return ResponseEntity.ok(rep);
 
-			}
-			catch (ObraNoEncontradaException e) {
+			} catch (ObraNoEncontradaException e) {
 				// Error, el cliente no está habilitado Responde 400?
-				logger.warn("Error al buscar cliente. Mensaje: "+ e.getMessage(), e);
+				logger.warn("Error al buscar cliente. Mensaje: " + e.getMessage(), e);
 				return ResponseEntity.notFound().build();
-			}
-			catch (ClienteNoHabilitadoException e) {
+			} catch (ClienteNoHabilitadoException e) {
 				// Error, el cliente no está habilitado Responde 400?
-				logger.warn("Cliente no habilitado. Mensaje: "+ e.getMessage(), e);
+				logger.warn("Cliente no habilitado. Mensaje: " + e.getMessage(), e);
 				return ResponseEntity.badRequest().build();
-			}
-			catch (ClienteBadRequestException e) {
+			} catch (ClienteBadRequestException e) {
 				// Respondo Internal server error (500) porque me parece que esto no es un
 				// problema de los datos que mandó el cliente.
 
-				logger.error("Cliente bad request exception. Mensaje: "+ e.getMessage(), e);
+				logger.error("Cliente bad request exception. Mensaje: " + e.getMessage(), e);
 				return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-			}
-			catch (ClienteException e) {
+			} catch (ClienteException e) {
 				// Respondo Internal server error (500) porque me parece que esto no es un
 				// problema de los datos que mandó el cliente.
 
-				logger.error("Cliente exception. Mensaje: "+ e.getMessage(), e);
+				logger.error("Cliente exception. Mensaje: " + e.getMessage(), e);
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			} catch (Exception e) {
 
-				logger.error("Error desconocido. Mensaje: "+ e.getMessage(), e);
+				logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
 				// Esto definitivamente es un 500, error desconocido e inesperado.
 				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 			}
@@ -106,7 +102,8 @@ public class PedidoRest {
 
 	}
 
-	//TODO agregar un endpoint PATCH que solo permitq actualizar el estado del pedido.
+	// TODO agregar un endpoint PATCH que solo permitq actualizar el estado del
+	// pedido.
 
 	@ApiOperation("Agregar un item a un pedido existente")
 	@ApiResponses(value = { @ApiResponse(code = 200, message = "Item agregado exitosamente"),
@@ -120,7 +117,7 @@ public class PedidoRest {
 			Pedido p = pedidoServiceImpl.addItem(idPedido, detalle);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			logger.warn("Pedido no encontrado. Mensaje: "+e.getMessage(), e);
+			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
 			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
@@ -135,20 +132,35 @@ public class PedidoRest {
 	@PutMapping("/{idPedido}")
 	public ResponseEntity<Pedido> actualizarPedido(@PathVariable Integer idPedido, @RequestBody Pedido nuevoPedido) {
 		logger.debug("entra a actualizar pedido. Id: " + idPedido);
-		try {
-			Pedido p = pedidoServiceImpl.updatePedido(idPedido, nuevoPedido);
-			return ResponseEntity.ok(p);
-		} catch (PedidoNoEncontradoException e) {
-			logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
-			return ResponseEntity.notFound().build();
-		} catch (HttpClientErrorException e) {
-			logger.error("Http Client Error. Mensaje: " + e.getMessage(), e);
-			return ResponseEntity.status(e.getStatusCode()).build();
-		} catch (Exception e) {
 
-			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		if (nuevoPedido != null && nuevoPedido.getObra() != null && nuevoPedido.getDetalle() != null
+				&& nuevoPedido.getDetalle().size() > 0 && nuevoPedido.getFechaPedido() != null) {
+			
+			for (DetallePedido d : nuevoPedido.getDetalle()) {
+				if (d.getCantidad() == null || d.getProducto() == null) {
+					return ResponseEntity.badRequest().build();
+				}
+			}
+			logger.debug("Cumple las mismas precondiciones que en POST");
+
+			try {
+				Pedido p = pedidoServiceImpl.updatePedido(idPedido, nuevoPedido);
+				return ResponseEntity.ok(p);
+			} catch (PedidoNoEncontradoException e) {
+				logger.warn("PEdido no encontrado. Mensaje: " + e.getMessage(), e);
+				return ResponseEntity.notFound().build();
+			} catch (HttpClientErrorException e) {
+				logger.error("Http Client Error. Mensaje: " + e.getMessage(), e);
+				return ResponseEntity.status(e.getStatusCode()).build();
+			} catch (Exception e) {
+
+				logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+			}
 		}
+		logger.warn("No se cumplieron las precondiciones.");
+		// No hay que devolver el pedido acá, porque no se guardó, no es válido.
+		return ResponseEntity.badRequest().build();
 
 	}
 
@@ -234,7 +246,8 @@ public class PedidoRest {
 			List<Pedido> p = pedidoServiceImpl.getPedidoByIdObra(idObra);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			//TODO no se encontró un pedido con essta obra, no creo que sea un error. Pueden existir obras sin pedidos.
+			// TODO no se encontró un pedido con essta obra, no creo que sea un error.
+			// Pueden existir obras sin pedidos.
 			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
@@ -255,17 +268,18 @@ public class PedidoRest {
 			@RequestParam(required = false, defaultValue = "0") Integer idCliente,
 			@RequestParam(required = false, defaultValue = "") String cuitCliente,
 			@RequestParam(required = false, defaultValue = "") String estadoPedido) {
-		
+
 		logger.debug("Entra al get de todos los los pedidos");
 		try {
 			List<Pedido> p = pedidoServiceImpl.getPedidosByClientParams(idCliente, cuitCliente, estadoPedido);
 			return ResponseEntity.ok(p);
 		} catch (PedidoNoEncontradoException e) {
-			//TODO Puede haber clientes sin pedidos, eso no es un error.
+			// TODO Puede haber clientes sin pedidos, eso no es un error.
 			logger.warn("Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (ObraNoEncontradaException e) {
-			//TODO VER, clientes sin obras es posible? No debería, pero igual 404 me parece raro
+			// TODO VER, clientes sin obras es posible? No debería, pero igual 404 me parece
+			// raro
 			logger.warn("Obra no encontrada. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
 		} catch (Exception e) {
@@ -286,9 +300,9 @@ public class PedidoRest {
 		DetallePedido detalleResultado;
 		logger.debug("Get detalle pedido by ID");
 		try {
-			
+
 			detalleResultado = pedidoServiceImpl.getDetallePedidoById(idPedido, id);
-			
+
 			return ResponseEntity.ok(detalleResultado);
 
 		} catch (PedidoNoEncontradoException e) {
@@ -300,7 +314,7 @@ public class PedidoRest {
 
 			logger.warn("Detalle Pedido no encontrado. Mensaje: " + e.getMessage(), e);
 			return ResponseEntity.notFound().build();
-		
+
 		} catch (Exception e) {
 
 			logger.error("Error desconocido. Mensaje: " + e.getMessage(), e);

@@ -28,6 +28,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -91,7 +92,8 @@ public class PedidosRestTest {
 		otroDetallePedido.setProducto(otroProducto);
 		otroDetallePedido.setCantidad(20);
 		otroDetallePedido.setPrecio(124.20);
-
+		
+		unPedido.setFechaPedido(Instant.now());
 		unPedido.setObra(unaObra);
 		unPedido.getDetalle().add(unDetallePedido);
 		unPedido.getDetalle().add(otroDetallePedido);
