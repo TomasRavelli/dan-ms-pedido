@@ -42,7 +42,7 @@ public class ClienteServiceImpl implements ClienteService {
 		// pertenece.
 
 		String url = usuarioRestProperties.getUrl();
-		logger.debug("Url de pedidos: " + url);
+		logger.debug("Url de usuarios: " + url);
 
 		WebClient client = WebClient.create(url + "/api");
 		

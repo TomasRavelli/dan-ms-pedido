@@ -22,13 +22,17 @@ public class MessageServiceImpl implements MessageService {
 	
 	@Override
 	public void sendMessageToProductos(Pedido p) {
-		
-		logger.debug("PEDIDO QUE LLEGO PARA ENVIAR EL MENSAJE: "+p.toString());
-		ArrayList<Integer> idDetalles = new ArrayList<>();
-		for(DetallePedido d: p.getDetalle()){
-			idDetalles.add(d.getId());
+
+		try {
+			logger.debug("PEDIDO QUE LLEGO PARA ENVIAR EL MENSAJE: "+p.toString());
+			ArrayList<Integer> idDetalles = new ArrayList<>();
+			for(DetallePedido d: p.getDetalle()){
+				idDetalles.add(d.getId());
+			}
+			jms.convertAndSend("COLA_PEDIDOS",idDetalles);
+		} catch (Exception e) {
+			logger.error("sendMessageToProductos: Error al enviar el mensaje: " + e.getMessage(), e);
 		}
-		jms.convertAndSend("COLA_PEDIDOS",idDetalles);
 	}
 
 }
