@@ -27,6 +27,7 @@ import dan.tp2021.pedidos.exceptions.cliente.ClienteNoHabilitadoException;
 import dan.tp2021.pedidos.exceptions.obra.ObraNoEncontradaException;
 import dan.tp2021.pedidos.exceptions.pedido.DetallePedidoNoEncontradoException;
 import dan.tp2021.pedidos.exceptions.pedido.PedidoNoEncontradoException;
+import io.micrometer.core.annotation.Timed;
 
 @Service
 public class PedidoServiceImpl implements PedidoService {
@@ -131,6 +132,7 @@ public class PedidoServiceImpl implements PedidoService {
 	}
 
 	@Override
+	@Timed(description = "tiempo_actualizacion_pedido")
 	public Pedido updatePedido(Integer idPedido, Pedido nuevoPedido) throws PedidoNoEncontradoException, ClienteException, ObraNoEncontradaException, ClienteBadRequestException, ClienteNoHabilitadoException {
 		
 		if (idPedido.equals(nuevoPedido.getId())) {
